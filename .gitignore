@@ -1,0 +1,33 @@
+/.metadata/
+# STS / Eclipse
+.metadata/
+.project
+.classpath
+.settings/
+
+# Spring Boot
+backend/target/
+*.log
+*.properties
+*.yaml
+*.yml
+
+# React
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+
+# Environment Files
+.env
+.env.*
+
+# VS Code
+.vscode/
+
+# IntelliJ
+.idea/
+*.iml
+
+# OS Files
+.DS_Store
+Thumbs.db
