@@ -1,14 +1,21 @@
 package com.company.salestracker.security;
 
 import java.security.Key;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import com.company.salestracker.entity.User;
+
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -16,52 +23,90 @@ import jakarta.annotation.PostConstruct;
 
 @Component
 public class JwtTokenProvider {
+
+	@Value("${jwt.secret}")
+	private String jwtSecret;
+
+	@Value("${jwt.expiration}")
+	private long jwtExpiration;
+
+	private Key key;
+
+	@PostConstruct
+	public void init() {
+		this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+	}
+
+	public String generateToken(User user) {
+
+		Set<String> roles = user.getRoles().stream().map(role -> role.getRoleName()).collect(Collectors.toSet());
+		Set<String> permissions = user.getRoles().stream().flatMap(role -> role.getPermissions().stream()).distinct()
+				.map((permission) -> permission.getPermissionCode()).collect(Collectors.toSet());
+		Map<String, Object> claims = new HashMap<>();
+		claims.put("roles", roles);
+		claims.put("permissions", permissions);
+		return Jwts.builder().setSubject(user.getEmail()).addClaims(claims).setIssuedAt(new Date())
+				.setExpiration(new Date(new Date().getTime() + jwtExpiration)).signWith(key, SignatureAlgorithm.HS512)
+				.compact();
+	}
+
+	public String getUsernameFromToken(String token) {
+	    return getAllClaims(token).getSubject();
+	}
+
+
+	public boolean validateTokenAndNotExpired(String token) {
+
+	    try {
+
+	        Claims claims = Jwts.parserBuilder()
+	                .setSigningKey(key)
+	                .build()
+	                .parseClaimsJws(token)
+	                .getBody();
+
+	        return claims.getExpiration().after(new Date());
+
+	    } catch (JwtException | IllegalArgumentException ex) {
+	        return false;
+	    }
+	}
+
 	
+	private Claims getAllClaims(String token) {
 
+	    return Jwts.parserBuilder()
+	            .setSigningKey(key)
+	            .build()
+	            .parseClaimsJws(token)
+	            .getBody();
+	}
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
+	
+	public Date getExpirationFromToken(String token) {
 
-    @Value("${jwt.expiration}")
-    private long jwtExpiration;
+		Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
 
-    private Key key;
+		return claims.getExpiration();
+	}
+	
+	public LocalDateTime getExpirationAsLocalDateTime(String token) {
 
-    @PostConstruct
-    public void init() {
-        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-    }
+	    return getExpirationFromToken(token)
+	            .toInstant()
+	            .atZone(ZoneId.systemDefault())
+	            .toLocalDateTime();
+	}
 
-    public String generateToken(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime() + jwtExpiration))
-                .signWith(key, SignatureAlgorithm.HS512)
-                .compact();
-    }
+	public long getRemainingValidity(String token) {
 
-    public String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+		Date expiration = getExpirationFromToken(token);
 
-        return claims.getSubject();
-    }
+		return expiration.getTime() - System.currentTimeMillis();
+	}
 
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
-        } catch (Exception ex) {
-           
-        }
-        return false;
-    }
-
+	
+	
 //    public String generateAuthToken(String email) {
 //        return Jwts.builder()
 //                .setSubject(email)
@@ -82,7 +127,5 @@ public class JwtTokenProvider {
 //                .signWith(key, SignatureAlgorithm.HS512)
 //                .compact();
 //    }
-
-   
 
 }

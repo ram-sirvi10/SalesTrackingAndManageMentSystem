@@ -44,7 +44,11 @@ public class User extends BaseEntity {
 	private UserStatus status;
 
 	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+	@JoinTable(
+	    name = "user_roles",  
+	    joinColumns = @JoinColumn(name = "user_id"),
+	    inverseJoinColumns = @JoinColumn(name = "role_id")
+	)
 	private Set<Role> roles;
 
 	@ManyToOne(fetch = FetchType.LAZY)

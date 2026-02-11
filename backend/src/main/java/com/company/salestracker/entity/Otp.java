@@ -23,7 +23,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @Builder
-@Table(name = "refresh_token")
+@Table(name = "otp")
 public class Otp {
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)

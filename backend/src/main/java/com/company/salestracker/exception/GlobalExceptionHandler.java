@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -18,60 +19,69 @@ import com.company.salestracker.dto.response.ApiResponse;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ApiResponse<Void>> handleBadRequest(BadRequestException ex) {
-	return ResponseEntity.badRequest().body(ApiResponse.error(ex.getMessage(), HttpStatus.BAD_REQUEST.name()));
-    }
+	@ExceptionHandler(BadRequestException.class)
+	public ResponseEntity<ApiResponse<Void>> handleBadRequest(BadRequestException ex) {
+		return ResponseEntity.badRequest().body(ApiResponse.error(ex.getMessage(), HttpStatus.BAD_REQUEST.name()));
+	}
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleResourceNotFound(ResourceNotFoundException ex) {
-	return ResponseEntity.status(HttpStatus.NOT_FOUND)
-		.body(ApiResponse.error(ex.getMessage(), HttpStatus.NOT_FOUND.name()));
-    }
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<ApiResponse<Void>> handleResourceNotFound(ResourceNotFoundException ex) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.body(ApiResponse.error(ex.getMessage(), HttpStatus.NOT_FOUND.name()));
+	}
 
-    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
-	return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
-		.body(ApiResponse.error(ex.getMessage(), HttpStatus.METHOD_NOT_ALLOWED.name()));
-    }
+	@ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+	public ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+		return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+				.body(ApiResponse.error(ex.getMessage(), HttpStatus.METHOD_NOT_ALLOWED.name()));
+	}
 
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ApiResponse<Map<String, String>>> handleMissingParams(
-	    MissingServletRequestParameterException ex) {
+	@ExceptionHandler(MissingServletRequestParameterException.class)
+	public ResponseEntity<ApiResponse<Map<String, String>>> handleMissingParams(
+			MissingServletRequestParameterException ex) {
 
-	Map<String, String> details = new HashMap<>();
-	details.put(ex.getParameterName(), "Parameter is missing");
+		Map<String, String> details = new HashMap<>();
+		details.put(ex.getParameterName(), "Parameter is missing");
 
-	return ResponseEntity.badRequest()
-		.body(ApiResponse.error("Missing request parameter", HttpStatus.BAD_REQUEST.name(), details));
-    }
+		return ResponseEntity.badRequest()
+				.body(ApiResponse.error("Missing request parameter", HttpStatus.BAD_REQUEST.name(), details));
+	}
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationExceptions(
-	    MethodArgumentNotValidException ex) {
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationExceptions(
+			MethodArgumentNotValidException ex) {
 
-	Map<String, String> errors = new HashMap<>();
-	ex.getBindingResult().getFieldErrors()
-		.forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+		Map<String, String> errors = new HashMap<>();
+		ex.getBindingResult().getFieldErrors()
+				.forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
-	return ResponseEntity.badRequest()
-		.body(ApiResponse.error("Validation failed", HttpStatus.BAD_REQUEST.name(), errors));
-    }
+		return ResponseEntity.badRequest()
+				.body(ApiResponse.error("Validation failed", HttpStatus.BAD_REQUEST.name(), errors));
+	}
 
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
+	public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
 
-	String message = "Invalid value for parameter '" + ex.getName() + "'. Expected type: "
-		+ ex.getRequiredType().getSimpleName();
+		String message = "Invalid value for parameter '" + ex.getName() + "'. Expected type: "
+				+ ex.getRequiredType().getSimpleName();
 
-	return ResponseEntity.badRequest().body(ApiResponse.error(message, HttpStatus.BAD_REQUEST.name()));
-    }
+		return ResponseEntity.badRequest().body(ApiResponse.error(message, HttpStatus.BAD_REQUEST.name()));
+	}
 
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiResponse<Void>> handleInvalidJson(HttpMessageNotReadableException ex) {
-	return ResponseEntity.badRequest()
-		.body(ApiResponse.error("Request body is missing or malformed JSON", HttpStatus.BAD_REQUEST.name()));
-    }
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ApiResponse<Void>> handleInvalidJson(HttpMessageNotReadableException ex) {
+		return ResponseEntity.badRequest()
+				.body(ApiResponse.error("Request body is missing or malformed JSON", HttpStatus.BAD_REQUEST.name()));
+	}
+
+	@ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+	public ResponseEntity<ApiResponse<Void>> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
+
+		String message = "Unsupported Content-Type. Please use application/json";
+
+		return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+				.body(ApiResponse.error(message, HttpStatus.UNSUPPORTED_MEDIA_TYPE.name()));
+	}
 
 //    @ExceptionHandler(Exception.class)
 //    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {

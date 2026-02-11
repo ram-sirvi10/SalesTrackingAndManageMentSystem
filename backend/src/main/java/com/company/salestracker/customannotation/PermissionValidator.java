@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.company.salestracker.repository.PermissionRepository;
+import com.company.salestracker.service.PermissionService;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -13,8 +13,9 @@ import jakarta.validation.ConstraintValidatorContext;
 public class PermissionValidator  implements ConstraintValidator<ValidRoles, Set<String>> {
 
 	@Autowired
-	private PermissionRepository permissionRepo;
-
+	private PermissionService permissionService;
+	 
+	
 	@Override
 	public boolean isValid(Set<String> permisisons, ConstraintValidatorContext context) {
 	    if (permisisons == null || permisisons.isEmpty()) {
@@ -22,7 +23,7 @@ public class PermissionValidator  implements ConstraintValidator<ValidRoles, Set
 	    }
 	    
 
-	    Set<String> allowedPermissions = new HashSet<>(permissionRepo.findAllIds());
+	    Set<String> allowedPermissions = new HashSet<String>(permissionService.getAllPermissionIds());
 
 	    return permisisons.stream()
 	                .allMatch(allowedPermissions::contains);

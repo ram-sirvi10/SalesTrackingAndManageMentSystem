@@ -22,39 +22,46 @@ import com.company.salestracker.mapper.Mapper;
 import com.company.salestracker.repository.PermissionRepository;
 import com.company.salestracker.repository.RoleRepository;
 import com.company.salestracker.repository.UserRepository;
+import com.company.salestracker.service.RoleService;
 import com.company.salestracker.util.AppConstant;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class RoleServiceImpl {
+public class RoleServiceImpl implements RoleService {
 
 	private final RoleRepository roleRepo;
 	private final PermissionRepository permissionRepo;
 	private final UserRepository userRepo;
 
+	@Override
 	public RoleResponse createRole(CreateRoleRequest request) {
 
 		User loginUser = currentLoginUser();
 
 		User ownerAdmin = loginUser.getOwnerAdmin();
-
-		Optional<Role> existingRole = roleRepo.findByOwnerAdminAndRoleName(ownerAdmin, request.getRoleName());
-
+		request.setRoleName(request.getRoleName().toUpperCase());
+		Optional<Role> existingRole = null;
+		if (ownerAdmin != null)
+			existingRole = roleRepo.findByOwnerAdminAndRoleName(ownerAdmin, request.getRoleName());
+		else
+			existingRole = roleRepo.findByRoleNameAndOwnerAdminIsNull(request.getRoleName());
 		if (existingRole.isPresent()) {
 			throw new BadRequestException(AppConstant.ROLE_ALREADY_EXIXT);
 		}
 
 		Set<Permission> permissions = new HashSet<>(permissionRepo.findAllById(request.getPermissions()));
 
-		Role role = Role.builder().roleName(request.getRoleName()).permissions(permissions).build();
-
-		role.setOwnerAdmin(ownerAdmin);
+		Role role = Role.builder().roleName(request.getRoleName()).permissions(permissions).ownerAdmin(ownerAdmin)
+				.createdBy(loginUser).build();
+ 
 
 		return Mapper.toResponse(roleRepo.save(role));
+
 	}
 
+	@Override
 	public List<RoleResponse> allRoleByAdmin(String adminId) {
 
 		User loginUser = currentLoginUser();
@@ -74,6 +81,12 @@ public class RoleServiceImpl {
 		return roleRepo.findByOwnerAdmin(requestedAdmin).stream().map(Mapper::toResponse).collect(Collectors.toList());
 	}
 
+	@Override
+	public List<RoleResponse> viewAllDefaultRole() {
+		return roleRepo.findByOwnerAdminIsNull().stream().map(Mapper::toResponse).collect(Collectors.toList());
+	}
+
+	@Override
 	public Boolean assignRolesToUser(AssignRolesRequest request) {
 
 		User currentLoginUser = currentLoginUser();
@@ -101,7 +114,6 @@ public class RoleServiceImpl {
 
 		targetUser.setRoles(roles);
 		userRepo.save(targetUser);
-
 		return true;
 	}
 

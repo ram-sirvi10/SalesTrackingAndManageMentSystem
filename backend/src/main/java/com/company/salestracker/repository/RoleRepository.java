@@ -13,16 +13,16 @@ import com.company.salestracker.entity.User;
 @Repository
 public interface RoleRepository extends JpaRepository<Role, String> {
 
-	@Query("select r.id from Role r")
-	List<String> findAllIds();
 
-	
-	
-	List<Role> findByAdmin(User admin);
+//	List<Role> findByAdmin(User admin);
 
 	Optional<Role> findByOwnerAdminAndRoleName(User ownerAdmin, String roleName);
 
+	List<Role> findByOwnerAdminIsNull();
 
+	Optional<Role> findByRoleNameAndOwnerAdminIsNull(String roleName);
 
 	List<Role> findByOwnerAdmin(User requestedAdmin);
+
+	Optional<Role>  findByRoleName(String roleName);
 }

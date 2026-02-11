@@ -35,6 +35,11 @@ public class Role extends BaseEntity {
 	@JoinTable(name = "role_permissions", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
 	private Set<Permission> permissions;
 
+	
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "created_by")
+	private User createdBy;
+	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "owner_admin")
 	private User ownerAdmin;

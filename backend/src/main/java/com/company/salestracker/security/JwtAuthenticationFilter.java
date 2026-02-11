@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.company.salestracker.exception.UnauthorizedException;
+import com.company.salestracker.service.RedisService;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,27 +22,37 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter{
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private final UserDetailsService userDetailsService;
 
 	private final JwtTokenProvider jwtTokenProvider;
 
+	private final RedisService redisService;
+
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) {
 
-		
 		String path = request.getServletPath();
-		return path.equals("/api/auth/login") || path.equals("/api/auth/register");
+		System.out.println("Swagger Request = " + request.getServletPath());
+
+		return path.startsWith("/api/auth")
+	            || path.startsWith("/swagger-ui")
+	            || path.startsWith("/v3/api-docs")
+	            || path.startsWith("/swagger-resources")
+	            || path.startsWith("/webjars");
 	}
 
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 
 		String token = getJwtFromRequest(request);
-		
-		if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
+
+		if (StringUtils.hasText(token) && jwtTokenProvider.validateTokenAndNotExpired(token)) {
 			String username = jwtTokenProvider.getUsernameFromToken(token);
+			if (redisService.exists("blacklist:" + token)) {
+				throw new UnauthorizedException("Unauthorized Access");
+			}
 			UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
 			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,

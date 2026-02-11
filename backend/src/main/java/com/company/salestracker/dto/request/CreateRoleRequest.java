@@ -19,8 +19,8 @@ import lombok.NoArgsConstructor;
 public class CreateRoleRequest {
 
 	
-	@NotBlank(message = AppConstant.USERNAME_NOT_BLANK)
-	@Pattern(regexp = AppConstant.VALID_USERNAME_REGEX, message = AppConstant.USERNAME_ERROR)
+	@NotBlank(message = AppConstant.ROLE_NAME_NOT_BLANK)
+	@Pattern(regexp = AppConstant.VALID_ROLE_REGEX, message = AppConstant.ROLE_ERROR)
 	private String roleName;
 
 	@NotBlank

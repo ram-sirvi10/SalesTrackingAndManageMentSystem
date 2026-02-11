@@ -5,11 +5,12 @@ public class AppConstant {
 	// ===================VALIDATION REGEX===============
 	public static final String VALID_USERNAME_REGEX = "^[A-Za-z][A-Za-z]*\\s?[A-Za-z]+$";
 	public static final String VALID_EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
-	public static final String VALID_PASSWORD_REGEX = "^[^\\s]{6}$";
+	public static final String VALID_PASSWORD_REGEX = "^[^\\s]{6,}$";
+
 	public static final String VALID_CATEGORY_REGEX = "^[A-Za-z]+$";
 	public static final String VALID_PHONE_REGEX = "^\\+?[6-9][0-9]{9,14}$";
 	public static final String DESCRIPTION_MIN_10_WORDS_REGEX = "^(\\s*\\S+){10,}\\s*$";
-	public static final String COMPLAINT_STATUS_REGEX = "^(PENDING|IN_PROGRESS|RESOLVED|CLOSED)$";
+	public static final String VALID_ROLE_REGEX = "^[A-Za-z]+(_[A-Za-z]+)*$";
 	// ======================User Request Validation Constants =============
 
 	public final static String USERNAME_ERROR = "Username invalid special character and more than one space in middile not allowed and no space allowed in start and end";
@@ -31,6 +32,11 @@ public class AppConstant {
 	public static final String INAVLID_REFRESH_TOKEN = "Invalid Refresh Token ";
 	public static final String TOKEN_EXPIRE = "Token is Expired";
 	public static final String ROLE_ALREADY_EXIXT = "Role already exist";
-	public static final String USERID_NOT_BLANK ="User id not be blank";
+	public static final String USERID_NOT_BLANK = "User id not be blank";
+	
+	public static final String ROLE_NAME_NOT_BLANK = "Role name must not be blank";
+
+	public static final String ROLE_ERROR = "Role name must contain only alphabets and underscore";
+
 
 }

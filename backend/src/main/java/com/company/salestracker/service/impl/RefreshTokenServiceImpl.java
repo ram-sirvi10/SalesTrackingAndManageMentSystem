@@ -1,6 +1,5 @@
 package com.company.salestracker.service.impl;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -9,38 +8,63 @@ import org.springframework.stereotype.Service;
 
 import com.company.salestracker.entity.RefreshToken;
 import com.company.salestracker.entity.User;
-import com.company.salestracker.exception.UnauthorizedException;
 import com.company.salestracker.repository.RefreshTokenRepository;
 import com.company.salestracker.service.RefreshTokenService;
-import com.company.salestracker.util.AppConstant;
+
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 
 	@Value("${refreshtoken.expriration}")
-	private int expirationDays;
-	private RefreshTokenRepository refreshTokenRepo;
+	private int REFRESH_TOKEN_EXPIRY;
+
+	private final RefreshTokenRepository repository;
 
 	@Override
-	public RefreshToken ganarateToken(User user) {
+	public RefreshToken createToken(User user) {
 
-		refreshTokenRepo.deleteByUserAndIsUsed(user, true);
+		repository.deleteByUserAndIsUsed(user, true);
 
-		return refreshTokenRepo.save(RefreshToken.builder().user(user).token(UUID.randomUUID().toString())
-				.expirationTime(LocalDateTime.now().plusDays(expirationDays)).build());
+		RefreshToken refreshToken = RefreshToken.builder().token(UUID.randomUUID().toString()).user(user)
+				.expirationTime(LocalDateTime.now().plusDays(REFRESH_TOKEN_EXPIRY)).isUsed(false).build();
+
+		return repository.save(refreshToken);
 	}
 
 	@Override
-	public boolean isValidToken(String token, User user) {
-		RefreshToken refreshToken = refreshTokenRepo.findByUserAndTokenAndIsUsed(user, token, false)
-				.orElseThrow(() -> new UnauthorizedException(AppConstant.INAVLID_REFRESH_TOKEN));
-		if (refreshToken.getExpirationTime().isBefore(LocalDateTime.now())) {
-			throw new UnauthorizedException(AppConstant.TOKEN_EXPIRE);
+	public RefreshToken verifyToken(String token) {
+
+		RefreshToken refreshToken = repository.findByToken(token)
+				.orElseThrow(() -> new RuntimeException("Invalid Refresh Token"));
+
+		if (Boolean.TRUE.equals(refreshToken.getIsUsed())) {
+			throw new RuntimeException("Refresh Token already used");
 		}
 
-		return true;
-	}
-	
-	
+		if (refreshToken.getExpirationTime().isBefore(LocalDateTime.now())) {
+			throw new RuntimeException("Refresh Token expired");
+		}
 
+		return refreshToken;
+	}
+
+	@Override
+	@Transactional
+	public RefreshToken rotateToken(RefreshToken oldToken) {
+
+		oldToken.setIsUsed(true);
+		repository.save(oldToken);
+
+		return createToken(oldToken.getUser());
+	}
+
+	@Override
+	public void deleteRefreshToken(String refreshToken) {
+		RefreshToken token = repository.findByToken(refreshToken)
+				.orElseThrow(() -> new RuntimeException("Invalid Refresh Token"));
+		repository.delete(token);
+	}
 }

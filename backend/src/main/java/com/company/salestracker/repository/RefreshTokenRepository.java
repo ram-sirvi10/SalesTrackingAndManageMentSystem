@@ -11,9 +11,8 @@ import com.company.salestracker.entity.User;
 
 @Repository
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, String> {
-	void deleteByUserAndIsUsed(User user, Boolean isUsed);
 
-	Optional<RefreshToken> findByUserAndTokenAndIsUsed(User user, String token, Boolean isUsed);
+	  Optional<RefreshToken> findByToken(String token);
 
-	Optional<RefreshToken> findByUserAndToken(User user, String token);
+	    void deleteByUserAndIsUsed(User user,Boolean isUsed);
 }
