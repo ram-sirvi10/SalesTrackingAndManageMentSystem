@@ -43,59 +43,50 @@ public class JwtTokenProvider {
 		Set<String> permissions = user.getRoles().stream().flatMap(role -> role.getPermissions().stream()).distinct()
 				.map((permission) -> permission.getPermissionCode()).collect(Collectors.toSet());
 		Map<String, Object> claims = new HashMap<>();
+		
+		
 		claims.put("roles", roles);
 		claims.put("permissions", permissions);
+		claims.put("name", user.getName());
+		claims.put("phone", user.getPhone());
+		claims.put("ownerAdminName", user.getOwnerAdmin()!=null?user.getOwnerAdmin().getName():"");
 		return Jwts.builder().setSubject(user.getEmail()).addClaims(claims).setIssuedAt(new Date())
 				.setExpiration(new Date(new Date().getTime() + jwtExpiration)).signWith(key, SignatureAlgorithm.HS512)
 				.compact();
 	}
 
 	public String getUsernameFromToken(String token) {
-	    return getAllClaims(token).getSubject();
+		return getAllClaims(token).getSubject();
 	}
-
 
 	public boolean validateTokenAndNotExpired(String token) {
 
-	    try {
+		try {
 
-	        Claims claims = Jwts.parserBuilder()
-	                .setSigningKey(key)
-	                .build()
-	                .parseClaimsJws(token)
-	                .getBody();
+			Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
 
-	        return claims.getExpiration().after(new Date());
+			return claims.getExpiration().after(new Date());
 
-	    } catch (JwtException | IllegalArgumentException ex) {
-	        return false;
-	    }
+		} catch (JwtException | IllegalArgumentException ex) {
+			return false;
+		}
 	}
 
-	
 	private Claims getAllClaims(String token) {
 
-	    return Jwts.parserBuilder()
-	            .setSigningKey(key)
-	            .build()
-	            .parseClaimsJws(token)
-	            .getBody();
+		return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
 	}
 
-	
 	public Date getExpirationFromToken(String token) {
 
 		Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
 
 		return claims.getExpiration();
 	}
-	
+
 	public LocalDateTime getExpirationAsLocalDateTime(String token) {
 
-	    return getExpirationFromToken(token)
-	            .toInstant()
-	            .atZone(ZoneId.systemDefault())
-	            .toLocalDateTime();
+		return getExpirationFromToken(token).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
 	}
 
 	public long getRemainingValidity(String token) {
@@ -105,8 +96,6 @@ public class JwtTokenProvider {
 		return expiration.getTime() - System.currentTimeMillis();
 	}
 
-	
-	
 //    public String generateAuthToken(String email) {
 //        return Jwts.builder()
 //                .setSubject(email)

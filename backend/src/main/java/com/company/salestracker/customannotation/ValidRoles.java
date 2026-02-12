@@ -7,6 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
 
 @Documented
 @Constraint(validatedBy = RoleValidator.class) 
@@ -15,5 +16,8 @@ import jakarta.validation.Constraint;
 public @interface ValidRoles {
     
     String message() default "One or more roles invalid";  
+    Class<?>[] groups() default {};
+
+    Class<? extends Payload>[] payload() default {};
    
 }

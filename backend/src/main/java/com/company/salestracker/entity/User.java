@@ -17,6 +17,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @AllArgsConstructor
@@ -24,6 +25,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @Builder
+
 @Table(name = "users")
 public class User extends BaseEntity {
 

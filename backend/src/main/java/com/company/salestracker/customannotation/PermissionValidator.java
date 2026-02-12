@@ -10,7 +10,7 @@ import com.company.salestracker.service.PermissionService;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class PermissionValidator  implements ConstraintValidator<ValidRoles, Set<String>> {
+public class PermissionValidator  implements ConstraintValidator<ValidPermission, Set<String>> {
 
 	@Autowired
 	private PermissionService permissionService;
@@ -19,6 +19,10 @@ public class PermissionValidator  implements ConstraintValidator<ValidRoles, Set
 	@Override
 	public boolean isValid(Set<String> permisisons, ConstraintValidatorContext context) {
 	    if (permisisons == null || permisisons.isEmpty()) {
+	    	 context.disableDefaultConstraintViolation();
+
+	         context.buildConstraintViolationWithTemplate("Permission must not be empty")
+	                 .addConstraintViolation();
 	        return false;
 	    }
 	    

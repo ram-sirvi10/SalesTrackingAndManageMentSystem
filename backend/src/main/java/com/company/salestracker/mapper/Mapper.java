@@ -40,7 +40,7 @@ public class Mapper {
 		if (role == null)
 			return null;
 
-		return RoleResponse.builder().id(role.getId()).roleName(role.getRoleName())
+		return RoleResponse.builder().id(role.getId()).roleName(role.getRoleName()).description(role.getDescription())
 				.permissions(toPermissionResponseSet(role.getPermissions())).build();
 	}
 

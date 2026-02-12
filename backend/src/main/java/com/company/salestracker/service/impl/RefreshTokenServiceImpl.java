@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.company.salestracker.entity.RefreshToken;
 import com.company.salestracker.entity.User;
+import com.company.salestracker.exception.BadRequestException;
 import com.company.salestracker.repository.RefreshTokenRepository;
 import com.company.salestracker.service.RefreshTokenService;
 
@@ -26,7 +27,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 	@Override
 	public RefreshToken createToken(User user) {
 
-		repository.deleteByUserAndIsUsed(user, true);
+		repository.deleteByUser(user);
 
 		RefreshToken refreshToken = RefreshToken.builder().token(UUID.randomUUID().toString()).user(user)
 				.expirationTime(LocalDateTime.now().plusDays(REFRESH_TOKEN_EXPIRY)).isUsed(false).build();
@@ -38,14 +39,14 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 	public RefreshToken verifyToken(String token) {
 
 		RefreshToken refreshToken = repository.findByToken(token)
-				.orElseThrow(() -> new RuntimeException("Invalid Refresh Token"));
+				.orElseThrow(() -> new BadRequestException("Invalid Refresh Token"));
 
 		if (Boolean.TRUE.equals(refreshToken.getIsUsed())) {
-			throw new RuntimeException("Refresh Token already used");
+			throw new BadRequestException("Refresh Token already used");
 		}
 
 		if (refreshToken.getExpirationTime().isBefore(LocalDateTime.now())) {
-			throw new RuntimeException("Refresh Token expired");
+			throw new BadRequestException("Refresh Token expired");
 		}
 
 		return refreshToken;

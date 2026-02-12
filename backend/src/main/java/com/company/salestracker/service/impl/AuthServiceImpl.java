@@ -26,7 +26,6 @@ import com.company.salestracker.repository.RoleRepository;
 import com.company.salestracker.repository.UserRepository;
 import com.company.salestracker.security.JwtTokenProvider;
 import com.company.salestracker.service.AuthService;
-import com.company.salestracker.service.RedisService;
 import com.company.salestracker.service.RefreshTokenService;
 import com.company.salestracker.util.AppConstant;
 
@@ -42,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
 	private final BCryptPasswordEncoder encoder;
 	private final RoleRepository roleRepo;
 	private final RefreshTokenService refreshTokenService;
-	private final RedisService redisService;
+//	private final RedisService redisService;
 
 	@Override
 	public UserResponse createUser(UserRequest request) {
@@ -69,6 +68,7 @@ public class AuthServiceImpl implements AuthService {
 		User ownerAdmin = currentLoginUser.getOwnerAdmin();
 
 		Set<Role> roles = new HashSet<>(roleRepo.findAllById(request.getRoles()));
+		boolean isOnlySuparAdminRole = isNewSuperAdmin(roles);
 
 		roles.forEach(role -> {
 
@@ -87,28 +87,22 @@ public class AuthServiceImpl implements AuthService {
 		});
 
 		User user = Mapper.toEntity(request, roles);
-
 		user.setStatus(UserStatus.ACTIVE);
-		if (ownerAdmin != null && currentLoginUser.getId().equalsIgnoreCase(ownerAdmin.getId()))
+		if (ownerAdmin != null && !currentLoginUser.getId().equalsIgnoreCase(ownerAdmin.getId()))
 			user.setStatus(UserStatus.PENDING);
 		user.setCreatedAt(LocalDateTime.now());
 		user.setUpdatedAt(LocalDateTime.now());
 		user.setPassword(encoder.encode(request.getPassword()));
 		user.setCreatedBy(currentLoginUser);
-
 //		Optional<User> deletedUser = emailUser.filter(User::getIsDelete).or(() -> phoneUser.filter(User::getIsDelete));
 		Optional<User> deletedUser = emailUser.filter(User::getIsDelete);
-
 		deletedUser.ifPresent(d -> {
 			user.setId(d.getId());
 			user.setIsDelete(false);
 		});
-
 		user.setOwnerAdmin(ownerAdmin);
-
 		User savedUser = userRepo.save(user);
-
-		if (ownerAdmin == null) {
+		if (ownerAdmin == null  && !isOnlySuparAdminRole) {
 			savedUser.setOwnerAdmin(savedUser);
 			savedUser = userRepo.save(savedUser);
 		}
@@ -117,6 +111,7 @@ public class AuthServiceImpl implements AuthService {
 	}
 
 	@Override
+	@Transactional
 	public JwtResponse loginUser(LoginRequest request) {
 
 		User user = userRepo.findByEmail(request.getEmail())
@@ -166,10 +161,18 @@ public class AuthServiceImpl implements AuthService {
 	@Transactional
 	public void logout(LogoutRequest request) {
 
-		redisService.set("blacklist:" + request.getAccessToken(),
-				jwtTokenProvider.getRemainingValidity(request.getAccessToken()));
+//		redisService.set("blacklist:" + request.getAccessToken(),
+//				jwtTokenProvider.getRemainingValidity(request.getAccessToken()));
 
 		refreshTokenService.deleteRefreshToken(request.getRefreshToken());
 	}
 
+	private boolean isNewSuperAdmin(Set<Role> roles) {
+
+		if (roles.size() >1)
+			return false;
+		if (roles.stream().filter(role -> role.getCreatedBy() == null).toList().isEmpty())
+			return false;
+		return true;
+	}
 }

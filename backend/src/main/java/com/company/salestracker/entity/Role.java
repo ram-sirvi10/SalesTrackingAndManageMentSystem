@@ -2,6 +2,8 @@ package com.company.salestracker.entity;
 
 import java.util.Set;
 
+
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -23,9 +25,10 @@ import lombok.Setter;
 @Getter
 @Builder
 @Table(name = "roles")
+
 public class Role extends BaseEntity {
 
-	@Column(nullable = false, unique = true)
+	@Column(nullable = false)
 	private String roleName;
 
 	@Column(nullable = false)
@@ -35,12 +38,14 @@ public class Role extends BaseEntity {
 	@JoinTable(name = "role_permissions", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
 	private Set<Permission> permissions;
 
-	
-	@ManyToOne(fetch = FetchType.EAGER)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "created_by")
 	private User createdBy;
-	
-	@ManyToOne(fetch = FetchType.EAGER)
+
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "owner_admin")
 	private User ownerAdmin;
+
+	
+
 }

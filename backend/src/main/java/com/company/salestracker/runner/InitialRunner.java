@@ -17,10 +17,12 @@ import com.company.salestracker.repository.PermissionRepository;
 import com.company.salestracker.repository.RoleRepository;
 import com.company.salestracker.repository.UserRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
+@Transactional
 public class InitialRunner implements CommandLineRunner {
 
 	private final UserRepository userRepo;
@@ -31,15 +33,29 @@ public class InitialRunner implements CommandLineRunner {
 	@Override
 	public void run(String... args) {
 
-		List<Permission> permissions = List.of(new Permission("CREATE_USER", "Create new user"),
-				new Permission("READ_USER", "View user details"), new Permission("UPDATE_USER", "Update user details"),
-				new Permission("DELETE_USER", "Delete user"), new Permission("CREATE_ROLE", "Create new role"),
-				new Permission("READ_ROLE", "View role details"), new Permission("UPDATE_ROLE", "Update role"),
-				new Permission("DELETE_ROLE", "Delete role"), new Permission("ASSIGN_ROLE", "Assign role to user"));
+		List<Permission> permissions = List.of(
 
-		List<Permission> existingPermissions = permissionRepo.findAll();
+				// USER
+				new Permission("CREATE_USER", "Create new user"), new Permission("READ_USER", "View user"),
+				new Permission("UPDATE_USER", "Update user"), new Permission("DELETE_USER", "Delete user"),
 
-		Set<String> existingCodes = existingPermissions.stream().map(Permission::getPermissionCode)
+				// ROLE
+				new Permission("CREATE_ROLE", "Create role"), new Permission("VIEW_ROLE", "View role"),
+				new Permission("UPDATE_ROLE", "Update role"), new Permission("DELETE_ROLE", "Delete role"),
+				new Permission("ASSIGN_ROLE", "Assign role to user"),
+				new Permission("REMOVE_ROLE_FROM_USER", "Remove role from user"),
+
+				// ROLE PERMISSIONS
+				new Permission("ADD_PERMISSION_TO_ROLE", "Add permission to role"),
+				new Permission("REMOVE_PERMISSION_FROM_ROLE", "Remove permission from role"),
+
+				// ROLE VIEW
+				new Permission("GET_ROLES_BY_ADMIN", "View roles by admin"),
+				new Permission("VIEW_DEFAULT_ROLE", "View default roles"),
+				new Permission("VIEW_USER_ROLES", "View roles of user"));
+
+		// Save missing permissions
+		Set<String> existingCodes = permissionRepo.findAll().stream().map(Permission::getPermissionCode)
 				.collect(Collectors.toSet());
 
 		List<Permission> newPermissions = permissions.stream()
@@ -51,22 +67,24 @@ public class InitialRunner implements CommandLineRunner {
 
 		Set<Permission> savedPermissions = new HashSet<>(permissionRepo.findAll());
 
+		// SUPER ADMIN ROLE
 		String roleName = "ROLE_SUPER_ADMIN";
 
-		if (roleRepo.findByRoleName(roleName).isEmpty()) {
+		Role superAdminRole = roleRepo.findByRoleNameAndIsDeleteFalse(roleName)
+				.orElseGet(() -> roleRepo.save(new Role(roleName, "Full system access", new HashSet<>(), null, null)));
 
-			Role role = new Role(roleName, "Highest level administrative role with full system access",
-					savedPermissions, null, null);
+		// Always give full permissions
+		superAdminRole.getPermissions().addAll(savedPermissions);
+		roleRepo.save(superAdminRole);
 
-			roleRepo.save(role);
-		}
+		// SUPER ADMIN USER
+		String email = "superadmin@gmail.com";
 
-		String superAdminEmail = "superadmin@gmail.com";
+		if (userRepo.findByEmail(email).isEmpty()) {
 
-		if (userRepo.findByEmail(superAdminEmail).isEmpty()) {
-
-			User superAdmin = User.builder().name("Super Admin").email(superAdminEmail).phone("9999999999")
-					.password(encoder.encode("Super@123")).status(UserStatus.ACTIVE).build();
+			User superAdmin = User.builder().name("Super Admin").email(email).phone("9999999999")
+					.password(encoder.encode("Super@123")).roles(Set.of(superAdminRole)).status(UserStatus.ACTIVE)
+					.build();
 
 			userRepo.save(superAdmin);
 		}

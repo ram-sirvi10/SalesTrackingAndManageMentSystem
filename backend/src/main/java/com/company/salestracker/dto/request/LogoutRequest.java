@@ -1,12 +1,23 @@
 package com.company.salestracker.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import org.springframework.stereotype.Component;
 
-@Data
+import jakarta.validation.constraints.NotEmpty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Component
+@Getter
+@Setter
 public class LogoutRequest {
-	@NotBlank
+	@NotEmpty
 	private String refreshToken;
-	@NotBlank
+	@NotEmpty
 	private String accessToken;
 }

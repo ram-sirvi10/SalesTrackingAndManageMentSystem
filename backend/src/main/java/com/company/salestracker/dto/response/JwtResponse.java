@@ -18,6 +18,6 @@ public class JwtResponse {
 
 	String accessToken;
 	String refreshToken;
-	UserResponse user;
+	
 
 }

@@ -47,25 +47,60 @@ public class SecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
 		http.csrf(csrf -> csrf.disable())
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
 
+				.authorizeHttpRequests(auth -> auth
 
-		                // Swagger URLs
-		                .requestMatchers(
-		                		 
-		                        "/swagger-ui/**",
-		                        "/swagger-ui.html",
-		                        "/v3/api-docs",
-		                        "/v3/api-docs/**",
-		                        "/swagger-resources/**",
-		                        "/webjars/**"
-		                ).permitAll()
-)
+						// PUBLIC AUTH APIs
+						.requestMatchers("/api/auth/login", "/api/auth/refresh-token", "/api/auth/forgot-password",
+								"/api/auth/verify-otp", "/api/auth/reset-password", "/error")
+						.permitAll()
+
+						
+						.requestMatchers("/api/auth/**").authenticated()
+
+				
+						.requestMatchers("/api/roles/**").authenticated()
+
+					
+						.requestMatchers("/api/users/**").authenticated()
+
+						
+						.anyRequest().authenticated()
+						)
+
 				.authenticationProvider(authenticationProvider())
-				.sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+				.sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+				.exceptionHandling(exception -> exception
+
+						.authenticationEntryPoint((request, response, ex) -> {
+							response.setContentType("application/json");
+							response.setStatus(401);
+							response.getWriter().write("""
+									{
+									  "success": false,
+									  "message": "Unauthorized - Invalid or Missing Token",
+									  "errorCode": "AUTH_401"
+									}
+									""");
+						})
+
+						.accessDeniedHandler((request, response, ex) -> {
+							response.setContentType("application/json");
+							response.setStatus(403);
+							response.getWriter().write("""
+									{
+									  "success": false,
+									  "message": "Forbidden - You don't have permission",
+									  "errorCode": "AUTH_403"
+									}
+									""");
+						}));
 
 		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
+
 }

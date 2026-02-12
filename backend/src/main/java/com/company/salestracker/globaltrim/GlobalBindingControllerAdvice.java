@@ -11,6 +11,7 @@ public class GlobalBindingControllerAdvice {
 
 	@InitBinder
 	public void initBinder(WebDataBinder binder) {
+		System.err.println("GlobalBindingControllerAdvice");
 		binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));
 	}
 }

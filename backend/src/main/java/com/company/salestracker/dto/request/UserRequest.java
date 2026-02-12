@@ -41,7 +41,7 @@ public class UserRequest {
 	@Pattern(regexp = AppConstant.VALID_PHONE_REGEX, message = AppConstant.PHONE_ERROR)
 	private String phone;
 	
-	@NotBlank(message = AppConstant.ROLES_NOT_BLANK)
+	
 	@ValidRoles(message = AppConstant.ROLES_INVALID)
 	private Set<String> roles;
 

@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.company.salestracker.entity.Role;
@@ -14,15 +13,16 @@ import com.company.salestracker.entity.User;
 public interface RoleRepository extends JpaRepository<Role, String> {
 
 
-//	List<Role> findByAdmin(User admin);
+
+	List<Role> findByOwnerAdminIsNullAndIsDeleteFalse();
 
 	Optional<Role> findByOwnerAdminAndRoleName(User ownerAdmin, String roleName);
 
-	List<Role> findByOwnerAdminIsNull();
+	List<Role> findByOwnerAdminAndIsDeleteFalse(User requestedAdmin);
 
-	Optional<Role> findByRoleNameAndOwnerAdminIsNull(String roleName);
+	Optional<Role> findByRoleNameAndIsDeleteFalse(String roleName);
 
-	List<Role> findByOwnerAdmin(User requestedAdmin);
+	Optional<Role> findByRoleNameAndOwnerAdminIsNullAndIsDeleteFalse(String roleName);
 
-	Optional<Role>  findByRoleName(String roleName);
+
 }

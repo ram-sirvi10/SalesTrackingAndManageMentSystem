@@ -13,6 +13,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.company.salestracker.dto.response.ApiResponse;
 
@@ -81,6 +82,13 @@ public class GlobalExceptionHandler {
 
 		return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
 				.body(ApiResponse.error(message, HttpStatus.UNSUPPORTED_MEDIA_TYPE.name()));
+	}
+
+	@ExceptionHandler(NoHandlerFoundException.class)
+	public ResponseEntity<?> handleNotFound(NoHandlerFoundException ex) {
+
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.body(Map.of("success", false, "message", "API endpoint not found", "errorCode", "API_404"));
 	}
 
 //    @ExceptionHandler(Exception.class)

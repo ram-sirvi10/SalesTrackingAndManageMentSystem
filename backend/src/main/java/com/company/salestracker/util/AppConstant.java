@@ -4,7 +4,7 @@ public class AppConstant {
 
 	// ===================VALIDATION REGEX===============
 	public static final String VALID_USERNAME_REGEX = "^[A-Za-z][A-Za-z]*\\s?[A-Za-z]+$";
-	public static final String VALID_EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+	public static final String VALID_EMAIL_REGEX = "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$";
 	public static final String VALID_PASSWORD_REGEX = "^[^\\s]{6,}$";
 
 	public static final String VALID_CATEGORY_REGEX = "^[A-Za-z]+$";
@@ -32,11 +32,10 @@ public class AppConstant {
 	public static final String INAVLID_REFRESH_TOKEN = "Invalid Refresh Token ";
 	public static final String TOKEN_EXPIRE = "Token is Expired";
 	public static final String ROLE_ALREADY_EXIXT = "Role already exist";
-	public static final String USERID_NOT_BLANK = "User id not be blank";
-	
+	public static final String USERID_NOT_BLANK = "User id not be blank";	
 	public static final String ROLE_NAME_NOT_BLANK = "Role name must not be blank";
-
 	public static final String ROLE_ERROR = "Role name must contain only alphabets and underscore";
+	public static final String DESCRIPTION_ERROR = "DESCRIPTION MIN 10 WORDS REQUIRED";
 
 
 }
