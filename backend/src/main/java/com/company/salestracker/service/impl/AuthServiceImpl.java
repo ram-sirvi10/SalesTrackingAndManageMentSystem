@@ -123,7 +123,7 @@ public class AuthServiceImpl implements AuthService {
 		if (!encoder.matches(request.getPassword(), user.getPassword()))
 			throw new BadRequestException(AppConstant.INVALID_CREDENTIAL);
 
-		if (user.getStatus().equals(UserStatus.INACTIVE))
+		if (!user.getStatus().equals(UserStatus.ACTIVE))
 			throw new BadRequestException(AppConstant.USER_IS_BLOCKED);
 
 		String accessToken = jwtTokenProvider.generateToken(user);

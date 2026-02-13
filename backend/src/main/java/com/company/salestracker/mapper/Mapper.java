@@ -68,6 +68,7 @@ public class Mapper {
 		return permissions.stream().map(Mapper::toResponse).collect(Collectors.toSet());
 	}
 	
+	
 	  public static PaginationResponse<?> toPaginationResponse(Page<?> page) {
 			return PaginationResponse.builder().content(page.getContent()).pageNumber(page.getNumber())
 				.pageSize(page.getSize()).totalElements(page.getTotalElements()).totalPages(page.getTotalPages())

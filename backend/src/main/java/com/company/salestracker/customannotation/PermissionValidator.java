@@ -29,6 +29,8 @@ public class PermissionValidator  implements ConstraintValidator<ValidPermission
 
 	    Set<String> allowedPermissions = new HashSet<String>(permissionService.getAllPermissionIds());
 
+	    System.err.println( permisisons.stream()
+	                .allMatch(allowedPermissions::contains));
 	    return permisisons.stream()
 	                .allMatch(allowedPermissions::contains);
 	}

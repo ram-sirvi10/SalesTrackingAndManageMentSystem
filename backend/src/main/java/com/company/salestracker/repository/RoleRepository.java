@@ -12,8 +12,6 @@ import com.company.salestracker.entity.User;
 @Repository
 public interface RoleRepository extends JpaRepository<Role, String> {
 
-
-
 	List<Role> findByOwnerAdminIsNullAndIsDeleteFalse();
 
 	Optional<Role> findByOwnerAdminAndRoleName(User ownerAdmin, String roleName);
@@ -24,5 +22,6 @@ public interface RoleRepository extends JpaRepository<Role, String> {
 
 	Optional<Role> findByRoleNameAndOwnerAdminIsNullAndIsDeleteFalse(String roleName);
 
+	List<Role> findByCreatedBy(User createdBy);
 
 }

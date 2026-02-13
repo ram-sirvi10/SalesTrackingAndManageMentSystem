@@ -22,7 +22,7 @@ public class AssignRolesRequest {
 	@NotBlank(message = AppConstant.USERID_NOT_BLANK)
 	private String userId;
 
-	@NotBlank(message = AppConstant.ROLES_NOT_BLANK)
+
 	@ValidRoles(message = AppConstant.ROLES_INVALID)
 	private Set<String> roles;
 }

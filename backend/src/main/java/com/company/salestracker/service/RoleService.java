@@ -31,6 +31,6 @@ public interface RoleService {
 
 	List<RoleResponse> getRolesByUser(String userId);
 
-	void addPermissionsToRole(String roleId, List<String> list);
+	void addPermissionsToRole(String roleId, Set<String> list);
 
 }

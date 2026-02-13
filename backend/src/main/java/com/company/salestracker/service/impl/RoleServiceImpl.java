@@ -1,5 +1,6 @@
 package com.company.salestracker.service.impl;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -80,7 +81,6 @@ public class RoleServiceImpl implements RoleService {
 
 		request.setRoleName(request.getRoleName().toUpperCase());
 
-		// Duplicate validation
 		Optional<Role> existingRole = findExistingRole(role.getOwnerAdmin(), request.getRoleName());
 
 		if (existingRole.isPresent() && !existingRole.get().getId().equals(roleId)) {
@@ -136,14 +136,13 @@ public class RoleServiceImpl implements RoleService {
 	@Override
 	public List<RoleResponse> getRolesByUser(String userId) {
 
-		User loginUser = currentLoginUser();
-
-		User ownerAdmin = loginUser.getOwnerAdmin() == null ? loginUser : loginUser.getOwnerAdmin();
+		User currentLoginUser = currentLoginUser();
 
 		User targetUser = userRepo.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
 
-		if (targetUser.getOwnerAdmin() != null && !targetUser.getOwnerAdmin().getId().equals(ownerAdmin.getId())) {
+		if (currentLoginUser.getOwnerAdmin() != null
+				&& !targetUser.getOwnerAdmin().getId().equals(currentLoginUser.getOwnerAdmin().getId())) {
 			throw new BadRequestException("Cannot view roles of this user");
 		}
 
@@ -155,19 +154,18 @@ public class RoleServiceImpl implements RoleService {
 	public Boolean assignRolesToUser(AssignRolesRequest request) {
 
 		User currentLoginUser = currentLoginUser();
-
-		User ownerAdmin = currentLoginUser.getOwnerAdmin() == null ? currentLoginUser
-				: currentLoginUser.getOwnerAdmin();
-
 		User targetUser = userRepo.findById(request.getUserId())
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
 
-		if (targetUser.getOwnerAdmin() != null && !targetUser.getOwnerAdmin().getId().equals(ownerAdmin.getId())) {
-
+		System.err.println("targetUser  == " + targetUser.getEmail());
+		System.err.println("currentLoginUser  == " + currentLoginUser.getEmail());
+		if (currentLoginUser.getOwnerAdmin() != null
+				&& !targetUser.getOwnerAdmin().getId().equals(currentLoginUser.getOwnerAdmin().getId())) {
 			throw new BadRequestException("Cannot manage this user");
 		}
 
 		Set<Role> roles = new HashSet<>(roleRepo.findAllById(request.getRoles()));
+		roles.addAll(targetUser.getRoles());
 		boolean isSuperAdmin = isNewSuperAdmin(roles);
 		if (!isSuperAdmin && targetUser.getOwnerAdmin() == null) {
 			targetUser.setOwnerAdmin(targetUser);
@@ -182,14 +180,14 @@ public class RoleServiceImpl implements RoleService {
 	@Override
 	public Boolean removeRoleFromUser(String userId, String roleId) {
 
-		User loginUser = currentLoginUser();
-
-		User ownerAdmin = loginUser.getOwnerAdmin() == null ? loginUser : loginUser.getOwnerAdmin();
+		User currentLoginUser = currentLoginUser();
+//		User ownerAdmin = loginUser.getOwnerAdmin() == null ? loginUser : loginUser.getOwnerAdmin();
 
 		User targetUser = userRepo.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
 
-		if (targetUser.getOwnerAdmin() != null && !targetUser.getOwnerAdmin().getId().equals(ownerAdmin.getId())) {
+		if (currentLoginUser.getOwnerAdmin() != null
+				&& !targetUser.getOwnerAdmin().getId().equals(currentLoginUser.getOwnerAdmin().getId())) {
 			throw new BadRequestException("Cannot manage this user");
 		}
 
@@ -199,9 +197,19 @@ public class RoleServiceImpl implements RoleService {
 		if (!targetUser.getRoles().contains(role)) {
 			throw new BadRequestException("User does not have this role assigned");
 		}
+		Set<Permission> removedPermissions = role.getPermissions();
 
+		List<Role> rolesCreatedByUser = new ArrayList<>();
+		if (targetUser.getOwnerAdmin() != null && targetUser.getOwnerAdmin().getId().equals(targetUser.getId())) {
+			rolesCreatedByUser = roleRepo.findByOwnerAdminAndIsDeleteFalse(targetUser);
+		} else
+			rolesCreatedByUser = roleRepo.findByCreatedBy(targetUser);
+		rolesCreatedByUser.forEach(r -> {
+			r.getPermissions().removeAll(removedPermissions);
+		});
+
+		roleRepo.saveAll(rolesCreatedByUser);
 		targetUser.getRoles().remove(role);
-
 		userRepo.save(targetUser);
 
 		return true;
@@ -212,10 +220,11 @@ public class RoleServiceImpl implements RoleService {
 	public Boolean deleteRole(String roleId) {
 
 		Role role = checkRoleBelongToCurrentUser(roleId);
-		// not delete default role
+
 		if (role.getCreatedBy() == null && role.getOwnerAdmin() == null) {
 			throw new BadRequestException("Not deleted this role");
 		}
+
 		userRepo.removeRoleMappings(roleId);
 		role.setIsDelete(true);
 		roleRepo.save(role);
@@ -235,7 +244,7 @@ public class RoleServiceImpl implements RoleService {
 
 	@Transactional
 	@Override
-	public void addPermissionsToRole(String roleId, List<String> permissionIds) {
+	public void addPermissionsToRole(String roleId, Set<String> permissionIds) {
 
 		if (permissionIds == null || permissionIds.isEmpty()) {
 			throw new BadRequestException("Permission ids cannot be empty");
@@ -260,12 +269,31 @@ public class RoleServiceImpl implements RoleService {
 	public void removePermissionFromRole(String roleId, String permissionId) {
 
 		Role role = checkRoleBelongToCurrentUser(roleId);
+
 		Permission permission = permissionRepo.findById(permissionId)
 				.orElseThrow(() -> new RuntimeException("Permission not found"));
 
 		role.getPermissions().remove(permission);
-
 		roleRepo.save(role);
+
+		List<User> usersHavingRole = userRepo.findByRolesContains(role);
+
+		for (User user : usersHavingRole) {
+
+			List<Role> rolesCreatedByUser;
+
+			User ownerAdmin = user.getOwnerAdmin() == null ? user : user.getOwnerAdmin();
+
+			if (ownerAdmin.getId().equals(user.getId())) {
+				rolesCreatedByUser = roleRepo.findByOwnerAdminAndIsDeleteFalse(ownerAdmin);
+			} else {
+				rolesCreatedByUser = roleRepo.findByCreatedBy(user);
+			}
+
+			rolesCreatedByUser.forEach(r -> r.getPermissions().remove(permission));
+
+			roleRepo.saveAll(rolesCreatedByUser);
+		}
 	}
 
 	private Role checkRoleBelongToCurrentUser(String roleId) {
@@ -279,6 +307,9 @@ public class RoleServiceImpl implements RoleService {
 			throw new BadRequestException("Role not found");
 		}
 
+		if(ownerAdmin==null&&role.getOwnerAdmin()!=null) {
+			throw new BadRequestException("Not manage this role");
+		}
 		return role;
 	}
 

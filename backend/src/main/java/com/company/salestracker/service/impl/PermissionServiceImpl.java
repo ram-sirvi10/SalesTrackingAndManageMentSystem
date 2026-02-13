@@ -38,6 +38,9 @@ public class PermissionServiceImpl implements PermissionService {
 
 		User loginUser = currentLoginUser();
 
+//		System.err.println(loginUser.getRoles().stream().flatMap(role -> role.getPermissions().stream()).distinct()
+//				.map(per->per.getId()).collect(Collectors.toSet()).size());
+		
 		return loginUser.getRoles().stream().flatMap(role -> role.getPermissions().stream()).distinct()
 				.map(per->per.getId()).collect(Collectors.toSet());
 	}
