@@ -39,11 +39,10 @@ public class UserServiceImpl implements UserService {
 
 		User user = getActiveUser(userId);
 
-		validateUserManagementAccess(user);
-
+		if (!userId.equals(currentLoginUser().getId()))
+			validateUserManagementAccess(user);
 		user.setName(request.getName());
 		user.setPhone(request.getPhone());
-		user.setUpdatedAt(LocalDateTime.now());
 
 		return Mapper.toResponse(userRepo.save(user));
 	}
@@ -96,9 +95,17 @@ public class UserServiceImpl implements UserService {
 
 		if (UserStatus.ACTIVE.equals(user.getStatus())) {
 			user.setStatus(UserStatus.INACTIVE);
+			if (isOwnerAdmin(user)) {
+
+				userRepo.inactiveAllUserByOwnerAdmin(user);
+			}
 
 		} else if (UserStatus.INACTIVE.equals(user.getStatus())) {
 			user.setStatus(UserStatus.ACTIVE);
+			if (isOwnerAdmin(user)) {
+
+				userRepo.activeAllUserByOwnerAdmin(user);
+			}
 
 		} else {
 			throw new BadRequestException("Only ACTIVE or INACTIVE users can be toggled");
@@ -109,99 +116,109 @@ public class UserServiceImpl implements UserService {
 		userRepo.save(user);
 	}
 
+	@Transactional
 	@Override
 	public void deleteUser(String userId) {
 
 		User user = getActiveUser(userId);
-
 		validateUserManagementAccess(user);
+		LocalDateTime now = LocalDateTime.now();
+		if (isOwnerAdmin(user)) {
 
+			userRepo.deleteAllUserByAdmin(user);
+		}
+		user.setStatus(UserStatus.INACTIVE);
 		user.setIsDelete(true);
-		user.setUpdatedAt(LocalDateTime.now());
-
+		user.setUpdatedAt(now);
 		userRepo.save(user);
 	}
 
 	@Override
-	public PaginationResponse<?> getAllUserByAdmin(String adminId, int pageNo, int pageSize) {
-
-		User admin = getActiveUser(adminId);
-		validateAdminAccessForViewUsers(adminId);
-
-		Pageable pageable = PageRequest.of(pageNo, pageSize);
-
-		Page<User> users = userRepo.findByOwnerAdminAndStatusNotAndIsDeleteFalse(admin, UserStatus.PENDING, pageable);
-
-		return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
-	}
-
-	@Override
 	public PaginationResponse<?> getAllUserByRole(String roleId, int pageNo, int pageSize) {
-		Role role = roleRepo.findById(roleId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
-				.orElseThrow(() -> new ResourceNotFoundException("Role not found"));
-		validateAdminAccessForViewUsers(role.getOwnerAdmin().getId());
+		Role role = checkRoleBelongToCurrentUser(roleId);
+
 		Pageable pageable = PageRequest.of(pageNo, pageSize);
 		Page<User> users = userRepo.findByRolesIdAndIsDeleteFalse(role.getId(), pageable);
 		return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
 	}
 
 	@Override
-	public PaginationResponse<?> getAllPendingRequestByAdmin(String adminId, int pageNo, int pageSize) {
+	public PaginationResponse<?> getAllPendingRequest(int pageNo, int pageSize) {
 
-		User admin = getActiveUser(adminId);
-		validateAdminAccessForViewUsers(adminId);
-
+		User admin = currentLoginUser().getOwnerAdmin();
 		Pageable pageable = PageRequest.of(pageNo, pageSize);
+		if (admin != null) {
 
-		Page<User> users = userRepo.findByOwnerAdminAndStatusAndIsDeleteFalse(admin, UserStatus.PENDING, pageable);
+			Page<User> users = userRepo.findByOwnerAdminAndStatusAndIsDeleteFalse(admin, UserStatus.PENDING, pageable);
 
-		return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
+			return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
+		} else {
+			Page<User> users = userRepo.findAllAdminPandingRequest(pageable);
+
+			return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
+		}
 	}
+
+//	@Override
+//	public PaginationResponse<?> getAllUsers(int pageNo, int pageSize) {
+//
+//		Pageable pageable = PageRequest.of(pageNo, pageSize);
+//
+//		Page<User> users = userRepo.findByIsDeleteFalse(pageable);
+//
+//		return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
+//	}
+
+//	@Override
+//	public PaginationResponse<?> getAllUserByAdmin(String adminId, int pageNo, int pageSize) {
+//		User admin = getActiveUser(adminId);
+//		validateUserManagementAccess(admin);
+//		Pageable pageable = PageRequest.of(pageNo, pageSize);
+//		Page<User> users = userRepo.findByOwnerAdminAndStatusNotAndIsDeleteFalse(admin, UserStatus.PENDING, pageable);
+//		return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
+//	}
 
 	@Override
-	public PaginationResponse<?> getAllUsers(int pageNo, int pageSize) {
-
+	public PaginationResponse<?> getAll(int pageNo, int pageSize) {
+		User loginUser = currentLoginUser();
 		Pageable pageable = PageRequest.of(pageNo, pageSize);
-
-		Page<User> users = userRepo.findByIsDeleteFalse(pageable);
-
-		return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
-	}
-
-	@Override
-	public PaginationResponse<?> getAllSuperAdmins(int pageNo, int pageSize) {
-
-		Pageable pageable = PageRequest.of(pageNo, pageSize);
-
-		Page<User> users = userRepo.findByOwnerAdminIsNullAndIsDeleteFalse(pageable);
-
-		return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
-	}
-
-	@Override
-	public PaginationResponse<?> getAllAdmins(int pageNo, int pageSize) {
-
-		Pageable pageable = PageRequest.of(pageNo, pageSize);
-
-		Page<User> users = userRepo.findSelfOwnerAdmins(pageable);
-
-		return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
-	}
-
-	private User getActiveUser(String id) {
-		return userRepo.findById(id).filter(user -> !Boolean.TRUE.equals(user.getIsDelete()))
-				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
-	}
-
-	private void validateAdminAccessForViewUsers(String id) {
-
-		User currentUser = currentLoginUser();
-
-		if (currentUser.getOwnerAdmin() != null && !currentUser.getOwnerAdmin().getId().equals(id)) {
-
-			throw new BadRequestException("Invalid request. You cannot view other admin users");
+		if (loginUser.getOwnerAdmin() != null) {
+			Page<User> users = userRepo.findByOwnerAdminAndStatusNotAndIsDeleteFalse(loginUser.getOwnerAdmin(),
+					UserStatus.PENDING, pageable);
+			return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
 		}
 
+		return Mapper.toPaginationResponse(userRepo.findAllSuperAndSelfAdmins(pageable).map(Mapper::toResponse));
+
+	}
+
+//	@Override
+//	public PaginationResponse<?> getAllSuperAdmins(int pageNo, int pageSize) {
+//
+//		Pageable pageable = PageRequest.of(pageNo, pageSize);
+//
+//		Page<User> users = userRepo.findByOwnerAdminIsNullAndIsDeleteFalse(pageable);
+//
+//		return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
+//	}
+//
+//	@Override
+//	public PaginationResponse<?> getAllAdmins(int pageNo, int pageSize) {
+//
+//		Pageable pageable = PageRequest.of(pageNo, pageSize);
+//
+//		Page<User> users = userRepo.findSelfOwnerAdmins(pageable);
+//
+//		return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
+//	}
+
+	private User getActiveUser(String id) {
+		User user = userRepo.findById(id).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
+		if (!user.getStatus().equals(UserStatus.ACTIVE)) {
+			throw new ResourceNotFoundException("User is blocked");
+		}
+		return user;
 	}
 
 	private User currentLoginUser() {
@@ -282,6 +299,26 @@ public class UserServiceImpl implements UserService {
 
 	private boolean isSubUser(User user) {
 		return user.getOwnerAdmin() != null && !user.getOwnerAdmin().getId().equals(user.getId());
+	}
+
+	private Role checkRoleBelongToCurrentUser(String roleId) {
+
+		User loginUser = currentLoginUser();
+		User ownerAdmin = loginUser.getOwnerAdmin();
+
+		Role role = roleRepo.findById(roleId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
+				.orElseThrow(() -> new BadRequestException("Role not found"));
+		if (ownerAdmin != null) {
+			if (role.getOwnerAdmin() == null || !role.getOwnerAdmin().getId().equalsIgnoreCase(ownerAdmin.getId())) {
+				throw new BadRequestException("Role not found");
+			}
+		}
+
+		if (ownerAdmin == null && role.getOwnerAdmin() != null) {
+			throw new BadRequestException("Not manage this role");
+		}
+
+		return role;
 	}
 
 }

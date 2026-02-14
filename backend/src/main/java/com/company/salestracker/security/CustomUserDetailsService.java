@@ -3,7 +3,6 @@ package com.company.salestracker.security;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,10 +32,16 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 		User user = userRepo.findByEmail(username).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
-		if(user.getStatus()==UserStatus.INACTIVE) {
+		if (user.getStatus() == UserStatus.INACTIVE) {
 			throw new BadRequestException(AppConstant.USER_IS_BLOCKED);
 		}
-		
+		User ownerAdmin = user.getOwnerAdmin();
+		if (ownerAdmin != null && !ownerAdmin.getStatus().equals(UserStatus.ACTIVE)) {
+			throw new BadRequestException(AppConstant.ADMIN_IS_BLOCKED);
+		}
+		if (ownerAdmin != null && ownerAdmin.getIsDelete()) {
+			throw new BadRequestException(AppConstant.ADMIN_NOT_FOUND);
+		}
 		Set<GrantedAuthority> authorities = new HashSet<>();
 
 		for (Role role : user.getRoles()) {
@@ -47,7 +52,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 			}
 		}
 
-	
 		return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), authorities);
 	}
 }

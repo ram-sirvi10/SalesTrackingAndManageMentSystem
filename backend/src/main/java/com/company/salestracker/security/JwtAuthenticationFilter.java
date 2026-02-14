@@ -10,8 +10,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import com.company.salestracker.config.RedisConfig;
-import com.company.salestracker.exception.UnauthorizedException;
+
 import com.company.salestracker.service.RedisService;
 
 import jakarta.servlet.FilterChain;
@@ -24,44 +23,36 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-   
-
 	private final UserDetailsService userDetailsService;
 
 	private final JwtTokenProvider jwtTokenProvider;
 
-   
-
-//	private final RedisService redisService;
+	private final RedisService redisService;
 
 	@Override
 	protected boolean shouldNotFilter(HttpServletRequest request) {
 
 		String path = request.getServletPath();
-		 System.err.println("Jwt Authentication shouldNotFilter === ");
+		System.err.println("Jwt Authentication shouldNotFilter === ");
 
-		 return !path.startsWith("/api/")||path.endsWith("/refresh-token")
-		            || path.endsWith("/api/auth/login")
-		            || path.equals("/error")
-		            || path.startsWith("/swagger-ui")
-		            || path.startsWith("/v3/api-docs")
-		            || path.startsWith("/swagger-resources")
-		            || path.startsWith("/webjars");
+		return !path.startsWith("/api/") || path.endsWith("/refresh-token") || path.endsWith("/api/auth/login")
+				|| path.equals("/error") || path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs")
+				|| path.startsWith("/swagger-resources") || path.startsWith("/webjars");
 	}
 
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 
 		String token = getJwtFromRequest(request);
-       System.err.println("Jwt Authentication filter === ");
+		System.err.println("Jwt Authentication filter === ");
 		if (StringUtils.hasText(token) && jwtTokenProvider.validateTokenAndNotExpired(token)) {
 			String username = jwtTokenProvider.getUsernameFromToken(token);
 //			if (redisService.exists("blacklist:" + token)) {
-//			    SecurityContextHolder.clearContext();
-//			    filterChain.doFilter(request, response);
-//			    return;
+//				SecurityContextHolder.clearContext();
+//				filterChain.doFilter(request, response);
+//				return;
 //			}
-			System.err.println("Token user == > "+username);
+			System.err.println("Token user == > " + username);
 
 			UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 

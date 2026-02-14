@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -42,24 +43,17 @@ public class RoleController {
 	}
 
 	// GET ADMIN ROLES
-	@GetMapping("/get-admin-roles")
-	@PreAuthorize("hasAuthority('GET_ROLES_BY_ADMIN')")
-	public ResponseEntity<ApiResponse<List<RoleResponse>>> getRolesByAdmin(@RequestParam String adminId) {
+	@GetMapping
+	@PreAuthorize("hasAuthority('VIEW_ROLES')")
+	public ResponseEntity<ApiResponse<List<RoleResponse>>> getRoles() {
 
 		return ResponseEntity
-				.ok(ApiResponse.success("Roles fetched successfully", roleService.getAllRolesByAdmin(adminId)));
+				.ok(ApiResponse.success("Roles fetched successfully", roleService.getAllRoll()));
 	}
 
-	// GET DEFAULT ROLES
-	@GetMapping("/get-default-roles")
-	@PreAuthorize("hasAuthority('VIEW_DEFAULT_ROLE')")
-	public ResponseEntity<ApiResponse<List<RoleResponse>>> getDefaultRoles() {
-
-		return ResponseEntity.ok(ApiResponse.success("Default roles fetched", roleService.viewAllDefaultRole()));
-	}
-
+	
 	// ADD SINGLE PERMISSION
-	@PostMapping("/{roleId}/permissions/{permissionId}")
+	@PatchMapping("/{roleId}/permissions/{permissionId}")
 	@PreAuthorize("hasAuthority('ADD_PERMISSION_TO_ROLE')")
 	public ResponseEntity<ApiResponse<?>> addPermission(@PathVariable String roleId,
 			@PathVariable String permissionId) {
@@ -68,10 +62,10 @@ public class RoleController {
 	}
 
 	// ADD BULK PERMISSIONS
-	@PostMapping("/{roleId}/permissions")
+	@PatchMapping("/{roleId}/permissions")
 	@PreAuthorize("hasAuthority('ADD_PERMISSION_TO_ROLE')")
 	public ResponseEntity<ApiResponse<?>> addPermissionsToRole(@PathVariable String roleId,
-			@Valid	@RequestBody UpdateRolePermissionRequest request) {
+			@Valid @RequestBody UpdateRolePermissionRequest request) {
 
 		roleService.addPermissionsToRole(roleId, request.getPermissions());
 		return ResponseEntity.ok(ApiResponse.success("Permissions added Successfully"));
@@ -91,7 +85,7 @@ public class RoleController {
 	@PutMapping("/{roleId}")
 	@PreAuthorize("hasAuthority('UPDATE_ROLE')")
 	public ResponseEntity<ApiResponse<RoleResponse>> updateRole(@PathVariable String roleId,
-			@Valid	@RequestBody RoleRequest request) {
+			@Valid @RequestBody RoleRequest request) {
 
 		return ResponseEntity
 				.ok(ApiResponse.success("Role updated successfully", roleService.updateRole(roleId, request)));
@@ -105,19 +99,18 @@ public class RoleController {
 		return ResponseEntity.ok(ApiResponse.success("Role fetched successfully", roleService.getRoleById(roleId)));
 	}
 
-	
-	// GET  ROLE 
-		@GetMapping("/user/{userId}")
-		@PreAuthorize("hasAuthority('VIEW_USER_ROLES')")
-		public ResponseEntity<ApiResponse<List<RoleResponse>>> getUserRoles(@PathVariable String userId) {
+	// GET ROLE OF USER
+	@GetMapping("/user/{userId}")
+	@PreAuthorize("hasAuthority('VIEW_USER_ROLES')")
+	public ResponseEntity<ApiResponse<List<RoleResponse>>> getUserRoles(@PathVariable String userId) {
 
-			return ResponseEntity.ok(ApiResponse.success("User roles fetched", roleService.getRolesByUser(userId)));
-		}
+		return ResponseEntity.ok(ApiResponse.success("User roles fetched", roleService.getRolesByUser(userId)));
+	}
 
 	// ASSIGN ROLE TO USER
-	@PostMapping("/assign-role")
+	@PatchMapping("/assign-role")
 	@PreAuthorize("hasAuthority('ASSIGN_ROLE')")
-	public ResponseEntity<ApiResponse<?>> assignRoleToUser (@Valid @RequestBody AssignRolesRequest request) {
+	public ResponseEntity<ApiResponse<?>> assignRoleToUser(@Valid @RequestBody AssignRolesRequest request) {
 
 		roleService.assignRolesToUser(request);
 		return ResponseEntity.ok(ApiResponse.success("Roles assigned successfully"));
@@ -140,7 +133,5 @@ public class RoleController {
 		roleService.deleteRole(roleId);
 		return ResponseEntity.ok(ApiResponse.success("Role deleted successfully"));
 	}
-	
-	
-	
+
 }

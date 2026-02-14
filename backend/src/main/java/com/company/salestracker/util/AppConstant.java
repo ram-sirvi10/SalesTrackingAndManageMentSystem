@@ -36,6 +36,8 @@ public class AppConstant {
 	public static final String ROLE_NAME_NOT_BLANK = "Role name must not be blank";
 	public static final String ROLE_ERROR = "Role name must contain only alphabets and underscore";
 	public static final String DESCRIPTION_ERROR = "DESCRIPTION MIN 10 WORDS REQUIRED";
+	public static final String ADMIN_IS_BLOCKED = "Your Admin is temporary blocked";
+	public static final String ADMIN_NOT_FOUND = "Your Admin not found or deleted ";
 
 
 }

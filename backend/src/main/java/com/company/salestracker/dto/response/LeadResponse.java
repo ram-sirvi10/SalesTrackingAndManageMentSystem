@@ -2,6 +2,11 @@ package com.company.salestracker.dto.response;
 
 import java.time.LocalDateTime;
 
+import lombok.Builder;
+import lombok.Data;
+
+@Builder
+@Data
 public class LeadResponse {
 
 	private String leadId;
@@ -16,8 +21,10 @@ public class LeadResponse {
 
 	private String status;
 
-	private UserResponse assignedTo;
-	
-	 private LocalDateTime createdAt;
+	private String assignedToId;
+
+	private String assignedPersonEmail;
+
+	private LocalDateTime createdAt;
 
 }

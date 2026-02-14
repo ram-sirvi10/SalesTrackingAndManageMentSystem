@@ -40,7 +40,7 @@ public class Lead extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "assigned_to")
-	private User user;
+	private User assignedto;
 
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "owner_admin")

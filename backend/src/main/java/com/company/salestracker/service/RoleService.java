@@ -11,9 +11,11 @@ public interface RoleService {
 
 	RoleResponse createRole(RoleRequest request);
 
-	List<RoleResponse> viewAllDefaultRole();
+//	List<RoleResponse> viewAllDefaultRole();
 
-	List<RoleResponse> getAllRolesByAdmin(String adminId);
+//	List<RoleResponse> getAllRolesByAdmin(String adminId);
+
+	List<RoleResponse> getAllRoll();
 
 	Boolean assignRolesToUser(AssignRolesRequest request);
 

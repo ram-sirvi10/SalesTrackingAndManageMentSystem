@@ -2,7 +2,6 @@ package com.company.salestracker.service.impl;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
@@ -33,17 +32,14 @@ public class PermissionServiceImpl implements PermissionService {
 				.map(Mapper::toResponse).toList();
 	}
 
-
 	public Set<String> getAllPermissionIds() {
 
 		User loginUser = currentLoginUser();
 
-//		System.err.println(loginUser.getRoles().stream().flatMap(role -> role.getPermissions().stream()).distinct()
-//				.map(per->per.getId()).collect(Collectors.toSet()).size());
-		
 		return loginUser.getRoles().stream().flatMap(role -> role.getPermissions().stream()).distinct()
-				.map(per->per.getId()).collect(Collectors.toSet());
+				.map(per -> per.getId()).collect(Collectors.toSet());
 	}
+
 	private User currentLoginUser() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		return userRepo.findByEmail(authentication.getName()).orElseThrow();

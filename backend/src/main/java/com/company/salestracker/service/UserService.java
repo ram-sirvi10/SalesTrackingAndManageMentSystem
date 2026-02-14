@@ -14,18 +14,22 @@ public interface UserService {
 
 	void deleteUser(String userId);
 
-	PaginationResponse<?> getAllUserByAdmin(String adminId, int pageNo, int pageSize);
+//	PaginationResponse<?> getAllUserByAdmin(String adminId, int pageNo, int pageSize);
 
-	PaginationResponse<?> getAllUsers(int pageNo, int pageSize);
+//	PaginationResponse<?> getAllUsers(int pageNo, int pageSize);
 
-	PaginationResponse<?> getAllSuperAdmins(int pageNo, int pageSize);
+//	PaginationResponse<?> getAllSuperAdmins(int pageNo, int pageSize);
+//
+//	PaginationResponse<?> getAllAdmins(int pageNo, int pageSize);
 
-	PaginationResponse<?> getAllAdmins(int pageNo, int pageSize);
-
-	PaginationResponse<?> getAllPendingRequestByAdmin(String adminId, int pageNo, int pageSize);
+//	PaginationResponse<?> getAllPendingRequestByAdmin(String adminId, int pageNo, int pageSize);
 
 	PaginationResponse<?> getAllUserByRole(String roleId, int pageNo, int pageSize);
 
 	UserResponse updateUser(String userId, UpdateUserRequest request);
+
+	PaginationResponse<?> getAll(int pageNo, int pageSize);
+
+	PaginationResponse<?> getAllPendingRequest(int pageNo, int pageSize);
 
 }
