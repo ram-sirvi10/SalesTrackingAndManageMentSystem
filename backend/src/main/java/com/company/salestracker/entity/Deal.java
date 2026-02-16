@@ -1,5 +1,6 @@
 package com.company.salestracker.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import jakarta.persistence.Column;
@@ -25,20 +26,23 @@ import lombok.Setter;
 @Table(name = "deals")
 public class Deal extends BaseEntity{
 	
-	@ManyToOne(fetch = FetchType.EAGER)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "lead_id" ,nullable = false)
 	private Lead lead;
 	
-	@Enumerated(EnumType.STRING)
-	private DealStage dealStage;
-	
 	@Column(nullable = false)
-	private Double expectedAmount;
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private DealStage dealStage = DealStage.OPEN;
+	
+	@Column(nullable = false, precision = 15, scale = 2)
+	private BigDecimal expectedAmount;
+
 	
 	@Column(nullable = false)
 	private LocalDate closingDate;
 	
-	@ManyToOne(fetch = FetchType.EAGER)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "assigned_to")
 	private User user;
 }

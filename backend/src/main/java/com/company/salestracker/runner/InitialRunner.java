@@ -38,11 +38,10 @@ public class InitialRunner implements CommandLineRunner {
 				// ==============================
 				// USER MANAGEMENT
 				// ==============================
-				new Permission("CREATE_USER", "Create new user"),
-				new Permission("READ_USER", "View user"),
-				new Permission("UPDATE_USER", "Update user"),
-				new Permission("DELETE_USER", "Delete user"),
-				new Permission("APPROVE_USER", "Approve user request"),
+				new Permission("CREATE_USER", "Create new user"), new Permission("READ_USER", "View user"),
+				new Permission("UPDATE_PROFILE", "update own profile"),
+				new Permission("UPDATE_USER", "Update other  user profile"),
+				new Permission("DELETE_USER", "Delete user"), new Permission("APPROVE_USER", "Approve user request"),
 				new Permission("REJECT_USER", "Reject user request"),
 				new Permission("TOGGLE_USER_STATUS", "Activate/Deactivate user"),
 				new Permission("VIEW_ALL_USERS", "View all users"),
@@ -55,33 +54,27 @@ public class InitialRunner implements CommandLineRunner {
 				// ==============================
 				// ROLE MANAGEMENT
 				// ==============================
-				new Permission("CREATE_ROLE", "Create role"),
-				new Permission("VIEW_ROLE", "View role"),
-				new Permission("UPDATE_ROLE", "Update role"),
-				new Permission("DELETE_ROLE", "Delete role"),
+				new Permission("CREATE_ROLE", "Create role"), new Permission("VIEW_ROLE", "View role"),
+				new Permission("UPDATE_ROLE", "Update role"), new Permission("DELETE_ROLE", "Delete role"),
 				new Permission("ASSIGN_ROLE", "Assign role to user"),
 				new Permission("REMOVE_ROLE_FROM_USER", "Remove role from user"),
 				new Permission("ADD_PERMISSION_TO_ROLE", "Add permission to role"),
 				new Permission("REMOVE_PERMISSION_FROM_ROLE", "Remove permission from role"),
 				new Permission("GET_ROLES_BY_ADMIN", "View roles by admin"),
-				new Permission("VIEW_ROLES", "View  roles"),
-				new Permission("VIEW_USER_ROLES", "View roles of user"),
-				
-				
+				new Permission("VIEW_ROLES", "View  roles"), new Permission("VIEW_USER_ROLES", "View roles of user"),
+
 				// ==============================
 				// LEAD MANAGEMENT
 				// ==============================
-				new Permission("CREATE_LEAD", "Create new lead"),
-				new Permission("UPDATE_LEAD", "Update lead details"),
-				new Permission("DELETE_LEAD", "Delete lead"),
-				new Permission("ASSIGN_LEAD", "Assign lead to user"),
+				new Permission("CREATE_LEAD", "Create new lead"), new Permission("UPDATE_LEAD", "Update lead details"),
+				new Permission("DELETE_LEAD", "Delete lead"), new Permission("ASSIGN_LEAD", "Assign lead to user"),
 				new Permission("UPDATE_LEAD_STATUS", "Update lead status"),
 				new Permission("VIEW_ALL_LEADS", "View all leads"),
 				new Permission("VIEW_ASSIGNED_LEADS", "View assigned leads"),
 				new Permission("VIEW_LEAD_DETAILS", "View lead details"),
 				new Permission("VIEW_LEAD_ACTIVITY", "View lead activity timeline")
 
-				);
+		);
 
 		// Save missing permissions
 		Set<String> existingCodes = permissionRepo.findAll().stream().map(Permission::getPermissionCode)

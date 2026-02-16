@@ -20,6 +20,8 @@ public interface LeadService {
 
 	public PaginationResponse<?> viewAllLeadByAssignedUser(String userId, int pageNo, int pageSize);
 
+	public LeadResponse getById(String leadId);
+
 	void deleteLead(String leadId);
 
 }

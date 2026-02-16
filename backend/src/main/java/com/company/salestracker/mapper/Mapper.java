@@ -7,17 +7,18 @@ import org.springframework.data.domain.Page;
 
 import com.company.salestracker.dto.request.LeadRequest;
 import com.company.salestracker.dto.request.UserRequest;
+import com.company.salestracker.dto.response.DealResponse;
 import com.company.salestracker.dto.response.LeadResponse;
 import com.company.salestracker.dto.response.PaginationResponse;
 import com.company.salestracker.dto.response.PermissionResponse;
 import com.company.salestracker.dto.response.RoleResponse;
 import com.company.salestracker.dto.response.UserResponse;
+import com.company.salestracker.entity.Deal;
 import com.company.salestracker.entity.Lead;
 import com.company.salestracker.entity.LeadStatus;
 import com.company.salestracker.entity.Permission;
 import com.company.salestracker.entity.Role;
 import com.company.salestracker.entity.User;
-import com.company.salestracker.repository.LeadRepository;
 
 public class Mapper {
 
@@ -61,29 +62,27 @@ public class Mapper {
 	public static LeadResponse toResponse(Lead lead) {
 		if (lead == null)
 			return null;
-		return LeadResponse.builder()
-				.leadId(lead.getId())
-				.name(lead.getName())
-				.email(lead.getEmail())
-				.phone(lead.getPhone())
-				.assignedToId(lead.getAssignedto().getId())
-				.assignedPersonEmail(lead.getAssignedto().getEmail())
-				.source(lead.getSource())
-				.createdAt(lead.getCreatedAt())
-				.build();
+		return LeadResponse.builder().leadId(lead.getId()).name(lead.getName()).email(lead.getEmail())
+				.phone(lead.getPhone()).assignedToId(lead.getAssignedto() != null ? lead.getAssignedto().getId() : null)
+				.assignedPersonEmail(lead.getAssignedto() != null ? lead.getAssignedto().getEmail() : null)
+
+				.source(lead.getSource()).createdAt(lead.getCreatedAt()).build();
 	}
-	
+
 	public static Lead toEntity(LeadRequest lead) {
 		if (lead == null)
 			return null;
-		return Lead.builder()
-				.name(lead.getName())
-				.email(lead.getEmail())
-				.source(lead.getSource())
-				.phone(lead.getPhone())
-				.status(LeadStatus.NEW)
-				.assignedto(null)
-				.build();
+		return Lead.builder().name(lead.getName()).email(lead.getEmail()).source(lead.getSource())
+				.phone(lead.getPhone()).status(LeadStatus.NEW).assignedto(null).build();
+	}
+
+	public static DealResponse toDealResponse(Deal deal) {
+
+		return DealResponse.builder().dealId(deal.getId()).lead(toResponse(deal.getLead()))
+				.assignedUserId(deal.getUser() != null ? deal.getUser().getId() : null)
+				.assignedUserEmail(deal.getUser() != null ? deal.getUser().getEmail() : null)
+				.dealStage(deal.getDealStage().name()).expectedAmount(deal.getExpectedAmount())
+				.closingDate(deal.getClosingDate()).createdAt(deal.getCreatedAt()).build();
 	}
 
 	public static Set<RoleResponse> toRoleResponseSet(Set<Role> roles) {

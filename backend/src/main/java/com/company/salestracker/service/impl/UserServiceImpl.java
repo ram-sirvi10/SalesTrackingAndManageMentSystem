@@ -1,6 +1,7 @@
 package com.company.salestracker.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,8 +40,17 @@ public class UserServiceImpl implements UserService {
 
 		User user = getActiveUser(userId);
 
-		if (!userId.equals(currentLoginUser().getId()))
-			validateUserManagementAccess(user);
+		if (!userId.equals(currentLoginUser().getId())) {
+			if (user.getRoles().stream().flatMap(role -> role.getPermissions().stream()).distinct()
+					.filter(per -> per.getPermissionCode().equals("UPADTE-USER")).collect(Collectors.toList())
+					.size() >= 1) {
+
+				validateUserManagementAccess(user);
+			} else
+				throw new BadRequestException("You don't have permission to manage other user");
+
+		}
+
 		user.setName(request.getName());
 		user.setPhone(request.getPhone());
 
@@ -121,11 +131,14 @@ public class UserServiceImpl implements UserService {
 	public void deleteUser(String userId) {
 
 		User user = getActiveUser(userId);
+		if (currentLoginUser().getId().equals(userId)) {
+			throw new BadRequestException("You cannot delete yourself");
+		}
 		validateUserManagementAccess(user);
 		LocalDateTime now = LocalDateTime.now();
 		if (isOwnerAdmin(user)) {
-
 			userRepo.deleteAllUserByAdmin(user);
+			userRepo.inactiveAllUserByOwnerAdmin(user);
 		}
 		user.setStatus(UserStatus.INACTIVE);
 		user.setIsDelete(true);
@@ -255,6 +268,9 @@ public class UserServiceImpl implements UserService {
 			if (isSubUser(targetUser)) {
 				throw new BadRequestException("Super admin cannot manage admin users");
 			}
+			if (isSuperAdmin(targetUser)) {
+				throw new BadRequestException("Super admin cannot manage other super admin");
+			}
 			return;
 		}
 
@@ -274,6 +290,9 @@ public class UserServiceImpl implements UserService {
 		// =============================
 		if (isSubUser(currentUser)) {
 
+			if (isOwnerAdmin(targetUser)) {
+				throw new BadRequestException("You can not manage admin");
+			}
 			if (!isSubUser(targetUser)
 					|| !targetUser.getOwnerAdmin().getId().equals(currentUser.getOwnerAdmin().getId())) {
 

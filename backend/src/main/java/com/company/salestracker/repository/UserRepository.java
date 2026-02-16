@@ -57,11 +57,11 @@ public interface UserRepository extends JpaRepository<User, String> {
 	Page<User> findByRolesIdAndIsDeleteFalse(String id, Pageable pageable);
 
 	@Query("""
-			    SELECT u.id FROM User u
+			    SELECT u FROM User u
 			    JOIN u.roles r
 			    WHERE r.id = :roleId
 			""")
-	Set<String> findUserIdsByRoleId(String roleId);
+	Set<User> findUserIdsByRoleId(String roleId);
 
 	@Modifying
 	@Query("""

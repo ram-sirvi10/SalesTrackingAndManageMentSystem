@@ -2,6 +2,7 @@ package com.company.salestracker.service.impl;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -102,7 +103,7 @@ public class RoleServiceImpl implements RoleService {
 		roleRepo.save(role);
 
 		if (!removedPermissions.isEmpty()) {
-			propagatePermissionRemoval(role, removedPermissions);
+			permissionRemoval(role, removedPermissions);
 		}
 
 		return Mapper.toResponse(role);
@@ -209,6 +210,8 @@ public class RoleServiceImpl implements RoleService {
 		User targetUser = userRepo.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
 
+		if (targetUser.getCreatedBy() == null && targetUser.getOwnerAdmin() == null)
+			throw new BadRequestException("Can not remove role from root super admin");
 		if (currentLoginUser.getOwnerAdmin() != null
 				&& !targetUser.getOwnerAdmin().getId().equals(currentLoginUser.getOwnerAdmin().getId())) {
 
@@ -219,17 +222,21 @@ public class RoleServiceImpl implements RoleService {
 			throw new BadRequestException("User does not have this role assigned");
 		}
 
-		Set<String> permissionIds = role.getPermissions().stream().map(Permission::getId).collect(Collectors.toSet());
+//		Set<String> permissionIds = role.getPermissions().stream().map(Permission::getId).collect(Collectors.toSet());
+		Set<String> permissionIdsToremove = targetUser.getRoles().stream().flatMap(rol -> rol.getPermissions().stream())
+				.collect(Collectors.groupingBy(permission -> permission.getId(), Collectors.counting())).entrySet()
+				.stream().filter(entry -> entry.getValue() == 1).map(Map.Entry::getKey).collect(Collectors.toSet());
 
 		Set<String> dependentRoleIds;
+
 		if (targetUser.getOwnerAdmin() != null && targetUser.getOwnerAdmin().getId().equals(targetUser.getId())) {
 			dependentRoleIds = roleRepo.findRoleIdsByOwnerAdmins(Set.of(targetUser.getId()));
 
 		} else {
 			dependentRoleIds = roleRepo.findRoleIdsByCreatedByUsers(Set.of(targetUser.getId()));
 		}
-		if (!dependentRoleIds.isEmpty() && !permissionIds.isEmpty()) {
-			roleRepo.removePermissionsFromRoles(dependentRoleIds, permissionIds);
+		if (!dependentRoleIds.isEmpty() && !permissionIdsToremove.isEmpty()) {
+			roleRepo.removePermissionsFromRoles(dependentRoleIds, permissionIdsToremove);
 		}
 
 		targetUser.getRoles().remove(role);
@@ -248,7 +255,7 @@ public class RoleServiceImpl implements RoleService {
 			throw new BadRequestException("Default roles cannot be deleted");
 		}
 
-		propagatePermissionRemoval(role, role.getPermissions());
+		permissionRemoval(role, role.getPermissions());
 
 		userRepo.removeRoleMappings(roleId);
 
@@ -291,7 +298,9 @@ public class RoleServiceImpl implements RoleService {
 	public void removePermissionFromRole(String roleId, String permissionId) {
 
 		Role role = checkRoleBelongToCurrentUser(roleId);
-
+		if (role.getCreatedBy() == null && role.getOwnerAdmin() == null) {
+			throw new BadRequestException("Can not remove permission from this role");
+		}
 		Permission permission = permissionRepo.findById(permissionId)
 				.orElseThrow(() -> new RuntimeException("Permission not found"));
 
@@ -301,7 +310,7 @@ public class RoleServiceImpl implements RoleService {
 
 		roleRepo.save(role);
 
-		propagatePermissionRemoval(role, Set.of(permission));
+		permissionRemoval(role, Set.of(permission));
 	}
 
 	private Role checkRoleBelongToCurrentUser(String roleId) {
@@ -362,20 +371,27 @@ public class RoleServiceImpl implements RoleService {
 		return permissions;
 	}
 
-	private void propagatePermissionRemoval(Role parentRole, Set<Permission> removedPermissions) {
+	private void permissionRemoval(Role parentRole, Set<Permission> removedPermissions) {
 
-		Set<String> userIds = userRepo.findUserIdsByRoleId(parentRole.getId());
-
-		if (userIds == null || userIds.isEmpty()) {
+		Set<User> users = userRepo.findUserIdsByRoleId(parentRole.getId());
+		if (users == null || users.isEmpty()) {
 			return;
 		}
-
-		List<User> users = userRepo.findAllById(userIds);
-
 		Set<String> ownerAdminIds = new HashSet<>();
 		Set<String> createdByUserIds = new HashSet<>();
 
 		for (User user : users) {
+
+			Map<String, Long> permissionCount = user.getRoles().stream().flatMap(role -> role.getPermissions().stream())
+					.collect(Collectors.groupingBy(Permission::getId, Collectors.counting()));
+
+			boolean hasPermissionElsewhere = removedPermissions.stream()
+					.anyMatch(pid -> permissionCount.getOrDefault(pid, 0L) > 1);
+
+		
+			if (hasPermissionElsewhere) {
+				continue;
+			}
 
 			User ownerAdmin = (user.getOwnerAdmin() == null) ? user : user.getOwnerAdmin();
 

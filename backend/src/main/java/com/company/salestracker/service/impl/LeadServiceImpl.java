@@ -45,6 +45,7 @@ public class LeadServiceImpl implements LeadService {
 		User ownerAdmin = resolveOwnerAdmin(currentUser);
 		Lead lead = Mapper.toEntity(request);
 		lead.setOwnerAdmin(ownerAdmin);
+		lead.setCreatedBy(currentUser);
 		Lead savedLead = leadRepo.save(lead);
 		saveActivity(savedLead, "CREATE", "Lead created");
 		return Mapper.toResponse(savedLead);
@@ -81,20 +82,20 @@ public class LeadServiceImpl implements LeadService {
 
 		User currentUser = currentLoginUser();
 		Lead lead = getActiveLead(request.getLeadId());
-
 		validateLeadAccess(currentUser, lead);
-
 		if (lead.getStatus() == LeadStatus.LOST) {
 			throw new BadRequestException("Cannot Assign a LOST lead");
+		}
+		if (lead.getStatus() == LeadStatus.QUALIFIED) {
+			throw new BadRequestException("Cannot Assign a QUALIFIED lead");
+		}
+		if (lead.getStatus() == LeadStatus.CONTACTED) {
+			throw new BadRequestException("Lead alreday CONTACTED ");
 		}
 		User assignedUser = getActiveUser(request.getUserId());
 
 		if (!resolveOwnerAdmin(assignedUser).getId().equals(resolveOwnerAdmin(currentUser).getId())) {
-
 			throw new BadRequestException("Cannot assign outside organization");
-		}
-		if (lead.getStatus() == LeadStatus.NEW) {
-			lead.setStatus(LeadStatus.CONTACTED);
 		}
 
 		lead.setAssignedto(assignedUser);
@@ -136,6 +137,9 @@ public class LeadServiceImpl implements LeadService {
 		if (oldStatus == LeadStatus.LOST) {
 			throw new BadRequestException("LOST lead status cannot be changed");
 		}
+		if (oldStatus == LeadStatus.QUALIFIED) {
+			throw new BadRequestException("QUALIFIED lead status cannot be changed");
+		}
 
 		boolean valid = false;
 
@@ -147,10 +151,6 @@ public class LeadServiceImpl implements LeadService {
 
 		case CONTACTED:
 			valid = (newStatus == LeadStatus.QUALIFIED || newStatus == LeadStatus.LOST);
-			break;
-
-		case QUALIFIED:
-			valid = (newStatus == LeadStatus.LOST);
 			break;
 
 		default:
@@ -171,21 +171,29 @@ public class LeadServiceImpl implements LeadService {
 	}
 
 	@Override
+	public LeadResponse getById(String leadId) {
+
+		User currentUser = currentLoginUser();
+		Lead lead = getActiveLead(leadId);
+		validateLeadAccess(currentUser, lead);
+		return Mapper.toResponse(lead);
+	}
+
+	@Override
 	public void deleteLead(String leadId) {
 
 		User currentUser = currentLoginUser();
 		Lead lead = getActiveLead(leadId);
 
 		validateLeadAccess(currentUser, lead);
-		if (lead.getStatus() == LeadStatus.QUALIFIED) {
-			throw new BadRequestException("Qualified leads cannot be deleted");
-		}
 		if (lead.getStatus() == LeadStatus.LOST) {
-			throw new BadRequestException("Lost leads cannot be deleted");
+			throw new BadRequestException("Cannot Delete a LOST lead");
 		}
-
-		if (lead.getAssignedto() != null) {
-			throw new BadRequestException("Assigned leads cannot be deleted");
+		if (lead.getStatus() == LeadStatus.QUALIFIED) {
+			throw new BadRequestException("Cannot Delete a QUALIFIED lead");
+		}
+		if (lead.getStatus() == LeadStatus.CONTACTED) {
+			throw new BadRequestException("Cannot Delete a CONTACTED lead");
 		}
 
 		lead.setIsDelete(true);
@@ -211,7 +219,7 @@ public class LeadServiceImpl implements LeadService {
 	public PaginationResponse<?> viewAllLeadByAssignedUser(String userId, int pageNo, int pageSize) {
 
 		User currentUser = currentLoginUser();
-		User targetUser = userRepo.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+		User targetUser = getActiveUser(userId);
 
 		if (!resolveOwnerAdmin(targetUser).getId().equals(resolveOwnerAdmin(currentUser).getId())) {
 
@@ -271,4 +279,5 @@ public class LeadServiceImpl implements LeadService {
 
 		leadActivityRepo.save(activity);
 	}
+
 }

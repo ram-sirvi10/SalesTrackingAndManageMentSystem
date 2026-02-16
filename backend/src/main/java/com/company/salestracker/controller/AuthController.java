@@ -29,7 +29,10 @@ public class AuthController {
 
 	private final AuthService authService;
 
-	// CREATE USER (Admin Only)
+	// ==============================
+	// CREATE USER
+	// ==============================
+
 	@PostMapping("/adduser")
 	@PreAuthorize("hasAuthority('CREATE_USER')")
 	public ResponseEntity<ApiResponse<UserResponse>> registerUser(@Valid @RequestBody UserRequest userRequest) {
@@ -38,21 +41,27 @@ public class AuthController {
 				.body(ApiResponse.success("User Registered Successfully", authService.createUser(userRequest)));
 	}
 
-	// LOGIN (Public)
+	// ==============================
+	// LOGIN
+	// ==============================
 	@PostMapping("/login")
 	public ResponseEntity<ApiResponse<JwtResponse>> login(@RequestBody @Valid LoginRequest loginRequest) {
 
 		return ResponseEntity.ok(ApiResponse.success("Login Successful", authService.loginUser(loginRequest)));
 	}
 
-	// FORGOT PASSWORD (Public)
+	// ==============================
+	// FORGOT PASSWORD
+	// ==============================
 	@PostMapping("/forgot-password")
 	public ResponseEntity<ApiResponse<OtpResponse>> forgotPassword(@RequestParam String email) {
 
 		return ResponseEntity.ok(ApiResponse.success("OTP sent successfully", authService.forgotPassword(email)));
 	}
 
-	// REFRESH TOKEN (Public)
+	// ==============================
+	// REFRESH TOKEN
+	// ==============================
 	@PostMapping("/refresh-token")
 	public ResponseEntity<ApiResponse<JwtResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
 
@@ -60,7 +69,9 @@ public class AuthController {
 				.ok(ApiResponse.success("Token refreshed", authService.refreshToken(request.getRefreshToken())));
 	}
 
-	// LOGOUT (Authenticated User)
+	// ==============================
+	// LOGOUT
+	// ==============================
 	@PostMapping("/logout")
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<ApiResponse<String>> logout(@Valid @RequestBody LogoutRequest request) {
