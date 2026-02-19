@@ -44,5 +44,13 @@ public class Deal extends BaseEntity{
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "assigned_to")
-	private User user;
+	private User assignedTo;
+	
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "owner_admin")
+	private User ownerAdmin;
+	
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "created_by")
+	private User createdBy;
 }

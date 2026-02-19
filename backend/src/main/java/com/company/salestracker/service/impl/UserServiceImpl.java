@@ -1,13 +1,10 @@
 package com.company.salestracker.service.impl;
 
 import java.time.LocalDateTime;
-import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.company.salestracker.dto.request.UpdateUserRequest;
@@ -17,12 +14,11 @@ import com.company.salestracker.entity.Role;
 import com.company.salestracker.entity.User;
 import com.company.salestracker.entity.UserStatus;
 import com.company.salestracker.exception.BadRequestException;
-import com.company.salestracker.exception.ResourceNotFoundException;
 import com.company.salestracker.mapper.Mapper;
-import com.company.salestracker.repository.RoleRepository;
 import com.company.salestracker.repository.UserRepository;
 import com.company.salestracker.service.UserService;
-import com.company.salestracker.util.AppConstant;
+import com.company.salestracker.util.AppCommon;
+import com.company.salestracker.util.PermissionCodeConstants;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -32,18 +28,16 @@ import lombok.RequiredArgsConstructor;
 public class UserServiceImpl implements UserService {
 
 	private final UserRepository userRepo;
-	private final RoleRepository roleRepo;
+	private final AppCommon appCommon;
 
 	@Override
 	@Transactional
 	public UserResponse updateUser(String userId, UpdateUserRequest request) {
 
-		User user = getActiveUser(userId);
+		User user = appCommon.getActiveUser(userId);
 
-		if (!userId.equals(currentLoginUser().getId())) {
-			if (user.getRoles().stream().flatMap(role -> role.getPermissions().stream()).distinct()
-					.filter(per -> per.getPermissionCode().equals("UPADTE-USER")).collect(Collectors.toList())
-					.size() >= 1) {
+		if (!userId.equals(appCommon.currentLoginUser().getId())) {
+			if (appCommon.hasPermission(user, PermissionCodeConstants.UPDATE_USER)) {
 
 				validateUserManagementAccess(user);
 			} else
@@ -60,7 +54,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void approveRequest(String userId) {
 
-		User user = getActiveUser(userId);
+		User user = appCommon.getActiveUser(userId);
 
 		validateUserManagementAccess(user);
 
@@ -77,7 +71,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void rejectRequest(String userId) {
 
-		User user = getActiveUser(userId);
+		User user = appCommon.getActiveUser(userId);
 
 		validateUserManagementAccess(user);
 
@@ -94,8 +88,8 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void toggalStatus(String userId) {
 
-		User user = getActiveUser(userId);
-		User currentUser = currentLoginUser();
+		User user = appCommon.getActiveUser(userId);
+		User currentUser = appCommon.currentLoginUser();
 
 		if (currentUser.getId().equals(userId)) {
 			throw new BadRequestException("You cannot change your own status");
@@ -130,8 +124,12 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void deleteUser(String userId) {
 
-		User user = getActiveUser(userId);
-		if (currentLoginUser().getId().equals(userId)) {
+		User user = appCommon.getActiveUser(userId);
+
+//	 	if(isOwnerAdmin(user)) {
+//			throw new BadRequestException("Admin can not ");
+//		}
+		if (appCommon.currentLoginUser().getId().equals(userId)) {
 			throw new BadRequestException("You cannot delete yourself");
 		}
 		validateUserManagementAccess(user);
@@ -148,7 +146,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public PaginationResponse<?> getAllUserByRole(String roleId, int pageNo, int pageSize) {
-		Role role = checkRoleBelongToCurrentUser(roleId);
+		Role role = appCommon.checkRoleBelongToCurrentUser(roleId);
 
 		Pageable pageable = PageRequest.of(pageNo, pageSize);
 		Page<User> users = userRepo.findByRolesIdAndIsDeleteFalse(role.getId(), pageable);
@@ -158,7 +156,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public PaginationResponse<?> getAllPendingRequest(int pageNo, int pageSize) {
 
-		User admin = currentLoginUser().getOwnerAdmin();
+		User admin = appCommon.currentLoginUser().getOwnerAdmin();
 		Pageable pageable = PageRequest.of(pageNo, pageSize);
 		if (admin != null) {
 
@@ -193,7 +191,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public PaginationResponse<?> getAll(int pageNo, int pageSize) {
-		User loginUser = currentLoginUser();
+		User loginUser = appCommon.currentLoginUser();
 		Pageable pageable = PageRequest.of(pageNo, pageSize);
 		if (loginUser.getOwnerAdmin() != null) {
 			Page<User> users = userRepo.findByOwnerAdminAndStatusNotAndIsDeleteFalse(loginUser.getOwnerAdmin(),
@@ -225,30 +223,9 @@ public class UserServiceImpl implements UserService {
 //		return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
 //	}
 
-	private User getActiveUser(String id) {
-		User user = userRepo.findById(id).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
-				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
-		if (!user.getStatus().equals(UserStatus.ACTIVE)) {
-			throw new ResourceNotFoundException("User is blocked");
-		}
-		return user;
-	}
-
-	private User currentLoginUser() {
-
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-		if (authentication == null || authentication.getName() == null) {
-			throw new BadRequestException("User not authenticated");
-		}
-
-		return userRepo.findByEmail(authentication.getName())
-				.orElseThrow(() -> new ResourceNotFoundException("Logged user not found"));
-	}
-
 	private void validateUserManagementAccess(User targetUser) {
 
-		User currentUser = currentLoginUser();
+		User currentUser = appCommon.currentLoginUser();
 
 		// Root super admin protection
 		if (isRootSuperAdmin(targetUser)) {
@@ -318,26 +295,6 @@ public class UserServiceImpl implements UserService {
 
 	private boolean isSubUser(User user) {
 		return user.getOwnerAdmin() != null && !user.getOwnerAdmin().getId().equals(user.getId());
-	}
-
-	private Role checkRoleBelongToCurrentUser(String roleId) {
-
-		User loginUser = currentLoginUser();
-		User ownerAdmin = loginUser.getOwnerAdmin();
-
-		Role role = roleRepo.findById(roleId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
-				.orElseThrow(() -> new BadRequestException("Role not found"));
-		if (ownerAdmin != null) {
-			if (role.getOwnerAdmin() == null || !role.getOwnerAdmin().getId().equalsIgnoreCase(ownerAdmin.getId())) {
-				throw new BadRequestException("Role not found");
-			}
-		}
-
-		if (ownerAdmin == null && role.getOwnerAdmin() != null) {
-			throw new BadRequestException("Not manage this role");
-		}
-
-		return role;
 	}
 
 }

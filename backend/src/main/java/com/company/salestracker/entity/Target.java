@@ -25,9 +25,15 @@ public class Target extends BaseEntity {
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "user_id")
 	private User user;
-
 	private Integer targetMonth;
 	private Integer targetYear;
 	private BigDecimal targetAmount;
 
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "created_by")
+	private User createdBy;
+	
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "owner_admin")
+	private User ownerAdmin;
 }

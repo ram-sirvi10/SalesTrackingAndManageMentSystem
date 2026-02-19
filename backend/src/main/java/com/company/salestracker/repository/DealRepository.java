@@ -11,11 +11,11 @@ import com.company.salestracker.entity.User;
 public interface DealRepository extends JpaRepository<Deal, String> {
 
    
-    Page<Deal> findByLeadOwnerAdminAndIsDeleteFalse(
+    Page<Deal> findByOwnerAdminAndIsDeleteFalse(
             User ownerAdmin, Pageable pageable);
 
   
-    Page<Deal> findByUserAndIsDeleteFalse(
+    Page<Deal> findByCreatedByAndIsDeleteFalse(
             User user, Pageable pageable);
 
 }

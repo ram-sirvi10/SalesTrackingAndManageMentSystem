@@ -4,7 +4,7 @@ public enum DealStage {
 
 	OPEN {
 		public boolean canMoveTo(DealStage next) {
-			return next == PROPOSAL_SENT || next == LOST;
+			return next == PROPOSAL_SENT ;
 		}
 	},
 	PROPOSAL_SENT {

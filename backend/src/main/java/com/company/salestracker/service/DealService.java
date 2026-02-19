@@ -1,5 +1,6 @@
 package com.company.salestracker.service;
 
+import com.company.salestracker.dto.request.DealAssignRequest;
 import com.company.salestracker.dto.request.DealRequest;
 import com.company.salestracker.dto.request.DealStageUpdateRequest;
 import com.company.salestracker.dto.response.DealResponse;
@@ -19,6 +20,10 @@ public interface DealService {
 
 	PaginationResponse<?> viewAllDeals(int pageNo, int pageSize);
 
-	PaginationResponse<?> viewDealsByUser(String userId, int pageNo, int pageSize);
+	PaginationResponse<?> viewDealsByAssignedUser(String userId, int pageNo, int pageSize);
+
+	DealResponse assignDeal(DealAssignRequest request);
+
+	
 
 }

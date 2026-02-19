@@ -89,7 +89,18 @@ public class LeadController {
 	}
 
 	// ==============================
-	// VIEW ALL LEADS (Tenant Safe)
+	// GET LEAD BY ID
+	// ==============================
+	@GetMapping("/{leadId}")
+	@PreAuthorize("hasAuthority('GET_LEAD')")
+	public ResponseEntity<ApiResponse<?>> getLeadById(@PathVariable String leadId) {
+
+		return ResponseEntity.ok(ApiResponse.success("Lead fetched successfully", leadService.getById(leadId)));
+
+	}
+
+	// ==============================
+	// VIEW ALL LEADS 
 	// ==============================
 	@GetMapping
 	@PreAuthorize("hasAuthority('VIEW_ALL_LEADS')")

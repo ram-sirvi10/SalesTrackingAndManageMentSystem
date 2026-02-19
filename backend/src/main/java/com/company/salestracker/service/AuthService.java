@@ -16,7 +16,7 @@ public interface AuthService {
 	public JwtResponse loginUser(LoginRequest request);
 
 	public OtpResponse forgotPassword(String email);
-
+	
 	public JwtResponse refreshToken(String refreshToken);
 
 

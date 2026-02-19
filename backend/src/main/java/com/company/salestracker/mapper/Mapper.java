@@ -6,18 +6,23 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 
 import com.company.salestracker.dto.request.LeadRequest;
+import com.company.salestracker.dto.request.TargetRequest;
 import com.company.salestracker.dto.request.UserRequest;
 import com.company.salestracker.dto.response.DealResponse;
 import com.company.salestracker.dto.response.LeadResponse;
 import com.company.salestracker.dto.response.PaginationResponse;
 import com.company.salestracker.dto.response.PermissionResponse;
 import com.company.salestracker.dto.response.RoleResponse;
+import com.company.salestracker.dto.response.SaleResponse;
+import com.company.salestracker.dto.response.TargetResponse;
 import com.company.salestracker.dto.response.UserResponse;
 import com.company.salestracker.entity.Deal;
 import com.company.salestracker.entity.Lead;
 import com.company.salestracker.entity.LeadStatus;
 import com.company.salestracker.entity.Permission;
 import com.company.salestracker.entity.Role;
+import com.company.salestracker.entity.Sale;
+import com.company.salestracker.entity.Target;
 import com.company.salestracker.entity.User;
 
 public class Mapper {
@@ -76,13 +81,24 @@ public class Mapper {
 				.phone(lead.getPhone()).status(LeadStatus.NEW).assignedto(null).build();
 	}
 
-	public static DealResponse toDealResponse(Deal deal) {
+	public static DealResponse toResponse(Deal deal) {
 
 		return DealResponse.builder().dealId(deal.getId()).lead(toResponse(deal.getLead()))
-				.assignedUserId(deal.getUser() != null ? deal.getUser().getId() : null)
-				.assignedUserEmail(deal.getUser() != null ? deal.getUser().getEmail() : null)
+				.assignedUserId(deal.getAssignedTo() != null ? deal.getAssignedTo().getId() : null)
+				.assignedUserEmail(deal.getAssignedTo() != null ? deal.getAssignedTo().getEmail() : null)
 				.dealStage(deal.getDealStage().name()).expectedAmount(deal.getExpectedAmount())
 				.closingDate(deal.getClosingDate()).createdAt(deal.getCreatedAt()).build();
+	}
+
+	public static SaleResponse toResponse(Sale sale) {
+		return SaleResponse.builder().id(sale.getId()).dealId(sale.getDeal() != null ? sale.getDeal().getId() : null)
+				.saleAmount(sale.getSaleAmount())
+				.dealAssignedUser(sale.getDeal() != null && sale.getDeal().getAssignedTo() != null
+						? sale.getDeal().getAssignedTo().getEmail()
+						: null)
+				.paymentStatus(sale.getPaymentStatus() != null ? sale.getPaymentStatus().name() : null)
+				.invoiceNumber(sale.getInvoiceNumber()).saleDate(sale.getSaleDate())
+				.createdByUserEmail(sale.getCreatedBy() != null ? sale.getCreatedBy().getEmail() : null).build();
 	}
 
 	public static Set<RoleResponse> toRoleResponseSet(Set<Role> roles) {
@@ -100,9 +116,31 @@ public class Mapper {
 		return permissions.stream().map(Mapper::toResponse).collect(Collectors.toSet());
 	}
 
-	public static PaginationResponse<?> toPaginationResponse(Page<?> page) {
-		return PaginationResponse.builder().content(page.getContent()).pageNumber(page.getNumber())
+	public static Target toEntity(TargetRequest request, User user) {
+		return Target.builder().user(user).targetMonth(request.getTargetMonth()).targetYear(request.getTargetYear())
+				.targetAmount(request.getTargetAmount()).build();
+	}
+
+	public static TargetResponse toResponse(Target target) {
+
+	   
+
+	        return TargetResponse.builder()
+	                .id(target.getId())
+	                .userId(target.getUser().getId())
+	                .userEmail(target.getUser().getEmail())
+	                .userName(target.getUser().getName())
+	                .targetMonth(target.getTargetMonth())
+	                .targetYear(target.getTargetYear())
+	                .targetAmount(target.getTargetAmount())
+	             
+	                .build();
+	    }
+
+	public static <T> PaginationResponse<T> toPaginationResponse(Page<T> page) {
+		return PaginationResponse.<T>builder().content(page.getContent()).pageNumber(page.getNumber())
 				.pageSize(page.getSize()).totalElements(page.getTotalElements()).totalPages(page.getTotalPages())
 				.lastPage(page.isLast()).firstPage(page.isFirst()).build();
 	}
+
 }

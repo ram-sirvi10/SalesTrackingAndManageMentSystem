@@ -34,7 +34,12 @@ public class LeadActivity extends BaseEntity{
 	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "created_by" ,nullable = false)
-	private User user;
+	private User createdBy;
+	
+
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "owner_admin" ,nullable = false)
+	private User ownerAdmin;
 	
 
 }

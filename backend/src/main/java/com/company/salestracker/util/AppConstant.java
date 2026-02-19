@@ -1,17 +1,21 @@
 package com.company.salestracker.util;
 
 public class AppConstant {
-
+	
+	
 	// ===================VALIDATION REGEX===============
 	public static final String VALID_USERNAME_REGEX = "^[A-Za-z][A-Za-z]*\\s?[A-Za-z]+$";
 	public static final String VALID_EMAIL_REGEX = "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$";
 	public static final String VALID_PASSWORD_REGEX = "^[^\\s]{6,}$";
-
 	public static final String VALID_CATEGORY_REGEX = "^[A-Za-z]+$";
 	public static final String VALID_PHONE_REGEX = "^\\+?[6-9][0-9]{9,14}$";
 	public static final String DESCRIPTION_MIN_10_WORDS_REGEX = "^(\\s*\\S+){10,}\\s*$";
 	public static final String VALID_ROLE_REGEX = "^[A-Za-z]+(_[A-Za-z]+)*$";
-	// ======================User Request Validation Constants =============
+	public static final String LEAD_STATUS_REGEX = "^(CONTACTED|QUALIFIED|LOST)$";
+	public static final String DEAL_STAGE_REGEX = "^(PROPOSAL_SENT|NEGOTIATION|LOST|WON)$";
+
+	public static final String  LEAD_STATUS_ERROR = "Lead status must be CONTACTED or QUALIFIED or LOST";
+	public static final String  DEAL_STATUS_ERROR = "DEAL stage must be PROPOSAL_SENT | NEGOTIATION | LOST | WON";
 
 	public final static String USERNAME_ERROR = "Username invalid special character and more than one space in middile not allowed and no space allowed in start and end";
 	public final static String USERNAME_NOT_BLANK = "User name cannot be blank";
@@ -32,12 +36,12 @@ public class AppConstant {
 	public static final String INAVLID_REFRESH_TOKEN = "Invalid Refresh Token ";
 	public static final String TOKEN_EXPIRE = "Token is Expired";
 	public static final String ROLE_ALREADY_EXIXT = "Role already exist";
-	public static final String USERID_NOT_BLANK = "User id not be blank";	
+	public static final String USERID_NOT_BLANK = "User id not be blank";
 	public static final String ROLE_NAME_NOT_BLANK = "Role name must not be blank";
 	public static final String ROLE_ERROR = "Role name must contain only alphabets and underscore";
 	public static final String DESCRIPTION_ERROR = "DESCRIPTION MIN 10 WORDS REQUIRED";
 	public static final String ADMIN_IS_BLOCKED = "Your Admin is temporary blocked";
 	public static final String ADMIN_NOT_FOUND = "Your Admin not found or deleted ";
 
-
+	
 }

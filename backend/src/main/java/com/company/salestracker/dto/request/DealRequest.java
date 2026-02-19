@@ -11,16 +11,14 @@ import lombok.Data;
 @Data
 public class DealRequest {
 
-    @NotBlank(message = "Lead ID is required")
-    private String leadId;
+	@NotBlank(message = "Lead ID is required")
+	private String leadId;
 
-    @NotBlank(message = "Assigned user ID is required")
-    private String userId;
+	@NotNull(message = "Expected amount is required")
+	@DecimalMin(value = "0.01", message = "Amount must be greater than 0")
+	private BigDecimal expectedAmount;
 
-    @NotNull(message = "Expected amount is required")
-    @DecimalMin(value = "0.01", message = "Amount must be greater than 0")
-    private BigDecimal expectedAmount;
+	@NotNull(message = "Closing date is required")
+	private LocalDate closingDate;
 
-    @NotNull(message = "Closing date is required")
-    private LocalDate closingDate;
 }

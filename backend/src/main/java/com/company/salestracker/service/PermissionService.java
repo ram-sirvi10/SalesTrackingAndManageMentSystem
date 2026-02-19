@@ -9,4 +9,6 @@ public interface PermissionService {
 
 	List<PermissionResponse> getAllPermission();
 	Set<String> getAllPermissionIds();
+	List<PermissionResponse> getAllPermissionByRole(String roleId);
+	List<PermissionResponse> getAllPermissionByUser(String userId);
 }

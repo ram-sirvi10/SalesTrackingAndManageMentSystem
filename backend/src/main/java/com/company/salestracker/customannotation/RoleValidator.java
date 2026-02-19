@@ -30,27 +30,24 @@ public class RoleValidator implements ConstraintValidator<ValidRoles, Set<String
 	@Override
 	public boolean isValid(Set<String> roles, ConstraintValidatorContext context) {
 		if (roles == null || roles.isEmpty()) {
-			 context.disableDefaultConstraintViolation();
+			context.disableDefaultConstraintViolation();
 
-		        context.buildConstraintViolationWithTemplate("Roles must not be empty")
-		                .addConstraintViolation();
+			context.buildConstraintViolationWithTemplate("Roles must not be empty").addConstraintViolation();
 			return false;
 		}
 
 		User currentLoginUser = currentLoginUser();
-		System.err.println("Roles Validator ->  Cureent login user "+currentLoginUser);
 		Set<String> allowedRoles = new HashSet<String>();
 		if (currentLoginUser != null && currentLoginUser.getOwnerAdmin() != null) {
-			allowedRoles = new HashSet<>(roleRepo.findByOwnerAdminAndIsDeleteFalse(currentLoginUser.getOwnerAdmin())).stream()
+			allowedRoles = new HashSet<>(roleRepo.findByOwnerAdminAndIsDeleteFalse(currentLoginUser.getOwnerAdmin()))
+					.stream().map(role -> role.getId()).collect(Collectors.toSet());
+
+		} else if (currentLoginUser != null && currentLoginUser.getOwnerAdmin() == null) {
+			allowedRoles = new HashSet<>(roleRepo.findByOwnerAdminIsNullAndIsDeleteFalse()).stream()
 					.map(role -> role.getId()).collect(Collectors.toSet());
-		System.err.println("Admin allowed roles ====>"+allowedRoles);
+
 		}
-		else if (currentLoginUser != null && currentLoginUser.getOwnerAdmin() == null) {
-			allowedRoles = new HashSet<>(roleRepo.findByOwnerAdminIsNullAndIsDeleteFalse()).stream().map(role -> role.getId())
-					.collect(Collectors.toSet());
-			System.err.println("Super Admin allowed roles ====>"+allowedRoles);	
-		}
-		
+
 		return roles.stream().allMatch(allowedRoles::contains);
 	}
 
