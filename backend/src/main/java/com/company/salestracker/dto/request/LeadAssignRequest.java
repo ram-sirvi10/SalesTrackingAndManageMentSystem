@@ -1,5 +1,6 @@
 package com.company.salestracker.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
 
@@ -7,7 +8,9 @@ import lombok.Data;
 @Builder
 public class LeadAssignRequest {
 
+	@NotBlank
 	private String leadId;
+	@NotBlank
 	private String userId;
 
 }

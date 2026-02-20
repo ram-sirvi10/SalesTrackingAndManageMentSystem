@@ -67,11 +67,62 @@ public interface SalesRepository extends JpaRepository<Sale, String> {
 			AND s.isDelete = false
 			GROUP BY s.commissionUser.id
 			""")
-			List<Object[]> getTotalSalesGroupedByUsers(
-			        @Param("userIds") List<String> userIds,
-			        @Param("startDate") LocalDate startDate,
-			        @Param("endDate") LocalDate endDate
-			);
+	List<Object[]> getTotalSalesGroupedByUsers(@Param("userIds") List<String> userIds,
+			@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
+	@Query("""
+			    SELECT s.commissionUser.id,
+			           s.commissionUser.name,
+			           COALESCE(SUM(s.saleAmount),0),
+			           COUNT(s)
+			    FROM Sale s
+			    WHERE s.ownerAdmin = :ownerAdmin
+			    AND s.isDelete = false
+			    AND s.saleDate BETWEEN :startDate AND :endDate
+			    GROUP BY s.commissionUser.id, s.commissionUser.name
+			""")
+	List<Object[]> getSalesByUser(User ownerAdmin, LocalDate startDate, LocalDate endDate);
+
+	@Query("""
+			    SELECT COALESCE(SUM(s.saleAmount),0)
+			    FROM Sale s
+			    WHERE s.ownerAdmin = :ownerAdmin
+			    AND s.isDelete = false
+			    AND s.saleDate BETWEEN :startDate AND :endDate
+			""")
+	BigDecimal getTotalRevenue(User ownerAdmin, LocalDate startDate, LocalDate endDate);
+
+	@Query("""
+			    SELECT COALESCE(SUM(s.saleAmount),0)
+			    FROM Sale s
+			    WHERE s.ownerAdmin = :ownerAdmin
+			    AND s.isDelete = false
+			    AND s.paymentStatus = 'PAID'
+			    AND s.saleDate BETWEEN :startDate AND :endDate
+			""")
+	BigDecimal getPaidRevenue(User ownerAdmin, LocalDate startDate, LocalDate endDate);
+
+	@Query("""
+			    SELECT COALESCE(SUM(s.saleAmount),0)
+			    FROM Sale s
+			    WHERE s.ownerAdmin = :ownerAdmin
+			    AND s.isDelete = false
+			    AND s.paymentStatus = 'PENDING'
+			    AND s.saleDate BETWEEN :startDate AND :endDate
+			""")
+	BigDecimal getPendingRevenue(User ownerAdmin, LocalDate startDate, LocalDate endDate);
+
+	@Query("""
+			    SELECT MONTH(s.saleDate),
+			           COALESCE(SUM(s.saleAmount),0)
+			    FROM Sale s
+			    WHERE s.ownerAdmin = :ownerAdmin
+			    AND s.isDelete = false
+			    AND s.saleDate BETWEEN :startDate AND :endDate
+			    GROUP BY MONTH(s.saleDate)
+			    ORDER BY MONTH(s.saleDate)
+			""")
+	List<Object[]> getSalesByMonth(@Param("ownerAdmin") User ownerAdmin, @Param("startDate") LocalDate startDate,
+			@Param("endDate") LocalDate endDate);
 
 }

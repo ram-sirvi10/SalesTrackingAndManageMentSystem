@@ -6,12 +6,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.company.salestracker.dto.request.ForgotPasswordRequest;
 import com.company.salestracker.dto.request.LoginRequest;
 import com.company.salestracker.dto.request.LogoutRequest;
+import com.company.salestracker.dto.request.OtpRequest;
 import com.company.salestracker.dto.request.RefreshTokenRequest;
+import com.company.salestracker.dto.request.ResetPasswordRequest;
 import com.company.salestracker.dto.request.UserRequest;
 import com.company.salestracker.dto.response.ApiResponse;
 import com.company.salestracker.dto.response.JwtResponse;
@@ -54,9 +56,31 @@ public class AuthController {
 	// FORGOT PASSWORD
 	// ==============================
 	@PostMapping("/forgot-password")
-	public ResponseEntity<ApiResponse<OtpResponse>> forgotPassword(@RequestParam String email) {
+	public ResponseEntity<ApiResponse<String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
 
-		return ResponseEntity.ok(ApiResponse.success("OTP sent successfully", authService.forgotPassword(email)));
+		authService.forgotPassword(request.getEmail());
+
+		return ResponseEntity.ok(ApiResponse.success("If account exists, OTP sent", null));
+	}
+
+	@PostMapping("/verify-otp")
+	public ResponseEntity<ApiResponse<OtpResponse>> verifyOtp(
+	        @Valid @RequestBody OtpRequest request) {
+
+	    return ResponseEntity.ok(
+	            ApiResponse.success("OTP verified",
+	                    authService.verifyOtp(request)));
+	}
+
+
+	@PostMapping("/reset-password")
+	public ResponseEntity<ApiResponse<String>> resetPassword(
+	        @Valid @RequestBody ResetPasswordRequest request) {
+
+	    authService.resetPassword(request);
+
+	    return ResponseEntity.ok(
+	            ApiResponse.success("Password reset successful", null));
 	}
 
 	// ==============================

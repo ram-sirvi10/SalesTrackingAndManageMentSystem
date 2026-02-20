@@ -47,6 +47,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		System.err.println("Jwt Authentication filter === ");
 		if (StringUtils.hasText(token) && jwtTokenProvider.validateTokenAndNotExpired(token)) {
 			String username = jwtTokenProvider.getUsernameFromToken(token);
+
+			String tokenType = jwtTokenProvider.getTokenType(token);
+
+			if (!"ACCESS".equals(tokenType)) {
+				filterChain.doFilter(request, response);
+				return;
+			}
 //			if (redisService.exists("blacklist:" + token)) {
 //				SecurityContextHolder.clearContext();
 //				filterChain.doFilter(request, response);

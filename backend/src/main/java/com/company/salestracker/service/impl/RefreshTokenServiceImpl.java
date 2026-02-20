@@ -68,4 +68,9 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 				.orElseThrow(() -> new RuntimeException("Invalid Refresh Token"));
 		repository.delete(token);
 	}
+
+	@Override
+	public void deleteByUser(User user) {
+		repository.deleteByUser(user);
+	}
 }

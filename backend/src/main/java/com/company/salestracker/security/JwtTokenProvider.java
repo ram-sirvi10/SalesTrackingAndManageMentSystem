@@ -37,22 +37,44 @@ public class JwtTokenProvider {
 		this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
 	}
 
-	public String generateToken(User user) {
+	public String generateAccessToken(User user) {
 
 		Set<String> roles = user.getRoles().stream().map(role -> role.getRoleName()).collect(Collectors.toSet());
+
 		Set<String> permissions = user.getRoles().stream().flatMap(role -> role.getPermissions().stream()).distinct()
-				.map((permission) -> permission.getPermissionCode()).collect(Collectors.toSet());
+				.map(permission -> permission.getPermissionCode()).collect(Collectors.toSet());
+
 		Map<String, Object> claims = new HashMap<>();
-		
-		
 		claims.put("roles", roles);
 		claims.put("permissions", permissions);
 		claims.put("name", user.getName());
 		claims.put("phone", user.getPhone());
-		claims.put("ownerAdminName", user.getOwnerAdmin()!=null?user.getOwnerAdmin().getName():"");
+		claims.put("tokenType", "ACCESS");
+
 		return Jwts.builder().setSubject(user.getEmail()).addClaims(claims).setIssuedAt(new Date())
 				.setExpiration(new Date(new Date().getTime() + jwtExpiration)).signWith(key, SignatureAlgorithm.HS512)
 				.compact();
+	}
+
+	public String generateResetToken(User user) {
+
+		return Jwts.builder().setSubject(user.getEmail()).claim("tokenType", "RESET") // 🔥 DIFFERENT TYPE
+				.setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis() + 10 * 60 * 1000)) // 10 min
+				.signWith(key, SignatureAlgorithm.HS512).compact();
+	}
+
+	public String getTokenType(String token) {
+		return getAllClaims(token).get("tokenType", String.class);
+	}
+
+	public boolean validateResetToken(String token) {
+
+		if (!validateTokenAndNotExpired(token))
+			return false;
+
+		String tokenType = getTokenType(token);
+
+		return "RESET".equals(tokenType);
 	}
 
 	public String getUsernameFromToken(String token) {
