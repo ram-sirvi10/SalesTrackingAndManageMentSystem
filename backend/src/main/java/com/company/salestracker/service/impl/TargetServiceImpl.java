@@ -44,7 +44,9 @@ public class TargetServiceImpl implements TargetService {
 		User currentUser = appCommon.currentLoginUser();
 		User ownerAdmin = appCommon.resolveOwnerAdmin(currentUser);
 		User targetUser = appCommon.getActiveUser(request.getUserId());
-
+		if(appCommon.isOwnerAdmin(targetUser)) {
+			throw new BadRequestException("Cannot create target for admin");
+		}
 		appCommon.validateAccess(currentUser, appCommon.resolveOwnerAdmin(targetUser));
 
 		validateMonthYear(request);
@@ -83,7 +85,9 @@ public class TargetServiceImpl implements TargetService {
 		validateMonthYear(request);
 
 		User targetUser = appCommon.getActiveUser(request.getUserId());
-
+		if(appCommon.isOwnerAdmin(targetUser)) {
+			throw new BadRequestException("Cannot create target or admin");
+		}
 		appCommon.validateAccess(currentUser, appCommon.resolveOwnerAdmin(targetUser));
 
 		boolean isChanged = !existingTarget.getUser().getId().equals(targetUser.getId())
@@ -161,6 +165,15 @@ public class TargetServiceImpl implements TargetService {
 
 		User currentUser = appCommon.currentLoginUser();
 		Target target = getActiveTarget(targetId);
+		LocalDate now = LocalDate.now();
+
+		LocalDate currentMonth = LocalDate.of(now.getYear(), now.getMonth(), 1);
+
+		LocalDate existingTargetMonth = LocalDate.of(target.getTargetYear(), target.getTargetMonth(), 1);
+
+		if (!existingTargetMonth.isAfter(currentMonth)) {
+			throw new BadRequestException("Past and current month targets cannot be deleted");
+		}
 
 		appCommon.validateAccess(currentUser, target.getOwnerAdmin());
 

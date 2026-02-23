@@ -53,11 +53,11 @@ public class User extends BaseEntity {
 	)
 	private Set<Role> roles;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "created_by")
 	private User createdBy;
 	
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "owner_admin")
 	private User ownerAdmin;
 }

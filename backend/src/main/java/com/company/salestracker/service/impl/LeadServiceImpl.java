@@ -85,7 +85,9 @@ public class LeadServiceImpl implements LeadService {
 				.equals(appCommon.resolveOwnerAdmin(currentUser).getId())) {
 			throw new BadRequestException("Cannot assign outside organization");
 		}
-
+		if (appCommon.isOwnerAdmin(assignedUser)) {
+			throw new BadRequestException("Cannot assign lead to admin");
+		}
 		lead.setAssignedto(assignedUser);
 
 		Lead savedLead = leadRepo.save(lead);
@@ -184,13 +186,7 @@ public class LeadServiceImpl implements LeadService {
 		User currentUser = appCommon.currentLoginUser();
 		User targetUser = appCommon.getActiveUser(userId);
 
-		if (!(currentUser.getId().equals(targetUser.getId())
-				&& appCommon.hasPermission(currentUser, PermissionCodeConstants.VIEW_ASSIGNED_LEAD_OF_OTHER_USER))) {
-			throw new BadRequestException("Access denied");
-		}
-		if (!appCommon.resolveOwnerAdmin(targetUser).getId().equals(appCommon.resolveOwnerAdmin(currentUser).getId())) {
-			throw new BadRequestException("Access denied");
-		}
+		appCommon.validateAccess(currentUser, targetUser.getOwnerAdmin());
 
 		Pageable pageable = PageRequest.of(pageNo, pageSize);
 

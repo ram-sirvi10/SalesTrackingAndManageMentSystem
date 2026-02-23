@@ -26,9 +26,9 @@ public interface UserRepository extends JpaRepository<User, String> {
 	@Query(value = "DELETE FROM user_roles WHERE role_id = :roleId", nativeQuery = true)
 	void removeRoleMappings(String roleId);
 
-	List<User> findByOwnerAdminAndIsDeleteFalse(User admin);
+//	List<User> findByOwnerAdminAndIsDeleteFalse(User admin);
 
-	List<User> findByRolesContains(Role role);
+//	List<User> findByRolesContains(Role role);
 
 //	@Query("SELECT u FROM User u WHERE  u = u.ownerAdmin and u.isDelete = false")
 //	Page<User> findSelfOwnerAdmins(Pageable pageable);

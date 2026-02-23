@@ -70,7 +70,7 @@ public class Mapper {
 		return LeadResponse.builder().leadId(lead.getId()).name(lead.getName()).email(lead.getEmail())
 				.phone(lead.getPhone()).assignedToId(lead.getAssignedto() != null ? lead.getAssignedto().getId() : null)
 				.assignedPersonEmail(lead.getAssignedto() != null ? lead.getAssignedto().getEmail() : null)
-
+				.status(lead.getStatus().name())
 				.source(lead.getSource()).createdAt(lead.getCreatedAt()).build();
 	}
 

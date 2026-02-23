@@ -14,11 +14,12 @@ import com.company.salestracker.entity.Role;
 import com.company.salestracker.entity.User;
 import com.company.salestracker.entity.UserStatus;
 import com.company.salestracker.exception.BadRequestException;
+import com.company.salestracker.exception.ResourceNotFoundException;
 import com.company.salestracker.mapper.Mapper;
 import com.company.salestracker.repository.UserRepository;
 import com.company.salestracker.service.UserService;
 import com.company.salestracker.util.AppCommon;
-import com.company.salestracker.util.PermissionCodeConstants;
+import com.company.salestracker.util.AppConstant;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -34,15 +35,11 @@ public class UserServiceImpl implements UserService {
 	@Transactional
 	public UserResponse updateUser(String userId, UpdateUserRequest request) {
 
-		User user = appCommon.getActiveUser(userId);
+	 User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
 
 		if (!userId.equals(appCommon.currentLoginUser().getId())) {
-			if (appCommon.hasPermission(user, PermissionCodeConstants.UPDATE_USER)) {
-
-				validateUserManagementAccess(user);
-			} else
-				throw new BadRequestException("You don't have permission to manage other user");
-
+			appCommon.validateUserManagementAccess(user);
 		}
 
 		user.setName(request.getName());
@@ -54,9 +51,10 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void approveRequest(String userId) {
 
-		User user = appCommon.getActiveUser(userId);
+		 User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
+					.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
 
-		validateUserManagementAccess(user);
+		appCommon.validateUserManagementAccess(user);
 
 		if (!UserStatus.PENDING.equals(user.getStatus())) {
 			throw new BadRequestException("Only pending users can be approved");
@@ -71,9 +69,9 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void rejectRequest(String userId) {
 
-		User user = appCommon.getActiveUser(userId);
-
-		validateUserManagementAccess(user);
+		 User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
+					.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
+		appCommon.validateUserManagementAccess(user);
 
 		if (!UserStatus.PENDING.equals(user.getStatus())) {
 			throw new BadRequestException("Only pending users can be rejected");
@@ -88,25 +86,26 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void toggalStatus(String userId) {
 
-		User user = appCommon.getActiveUser(userId);
+	User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
 		User currentUser = appCommon.currentLoginUser();
 
 		if (currentUser.getId().equals(userId)) {
 			throw new BadRequestException("You cannot change your own status");
 		}
 
-		validateUserManagementAccess(user);
+		appCommon.validateUserManagementAccess(user);
 
 		if (UserStatus.ACTIVE.equals(user.getStatus())) {
 			user.setStatus(UserStatus.INACTIVE);
-			if (isOwnerAdmin(user)) {
+			if (appCommon.isOwnerAdmin(user)) {
 
 				userRepo.inactiveAllUserByOwnerAdmin(user);
 			}
 
 		} else if (UserStatus.INACTIVE.equals(user.getStatus())) {
 			user.setStatus(UserStatus.ACTIVE);
-			if (isOwnerAdmin(user)) {
+			if (appCommon.isOwnerAdmin(user)) {
 
 				userRepo.activeAllUserByOwnerAdmin(user);
 			}
@@ -124,19 +123,20 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void deleteUser(String userId) {
 
-		User user = appCommon.getActiveUser(userId);
-
+		 User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
+					.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
 //	 	if(isOwnerAdmin(user)) {
 //			throw new BadRequestException("Admin can not ");
 //		}
 		if (appCommon.currentLoginUser().getId().equals(userId)) {
 			throw new BadRequestException("You cannot delete yourself");
 		}
-		validateUserManagementAccess(user);
+		appCommon.validateUserManagementAccess(user);
 		LocalDateTime now = LocalDateTime.now();
-		if (isOwnerAdmin(user)) {
-			userRepo.deleteAllUserByAdmin(user);
-			userRepo.inactiveAllUserByOwnerAdmin(user);
+		if (appCommon.isOwnerAdmin(user)) {
+			throw new BadRequestException("Can not delete admin ");
+//			userRepo.deleteAllUserByAdmin(user);
+//			userRepo.inactiveAllUserByOwnerAdmin(user);
 		}
 		user.setStatus(UserStatus.INACTIVE);
 		user.setIsDelete(true);
@@ -203,6 +203,9 @@ public class UserServiceImpl implements UserService {
 
 	}
 
+	
+	
+	
 //	@Override
 //	public PaginationResponse<?> getAllSuperAdmins(int pageNo, int pageSize) {
 //
@@ -222,79 +225,5 @@ public class UserServiceImpl implements UserService {
 //
 //		return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
 //	}
-
-	private void validateUserManagementAccess(User targetUser) {
-
-		User currentUser = appCommon.currentLoginUser();
-
-		// Root super admin protection
-		if (isRootSuperAdmin(targetUser)) {
-			throw new BadRequestException("Main super admin cannot be modified");
-		}
-
-//		// Root super admin → full access
-//		if (isRootSuperAdmin(currentUser)) {
-//			return;
-//		}
-
-		// =============================
-		// Super Admin
-		// =============================
-		if (isSuperAdmin(currentUser)) {
-
-			if (isSubUser(targetUser)) {
-				throw new BadRequestException("Super admin cannot manage admin users");
-			}
-			if (isSuperAdmin(targetUser)) {
-				throw new BadRequestException("Super admin cannot manage other super admin");
-			}
-			return;
-		}
-
-		// =============================
-		// Owner Admin
-		// =============================
-		if (isOwnerAdmin(currentUser)) {
-
-			if (!targetUser.getOwnerAdmin().getId().equals(currentUser.getId())) {
-				throw new BadRequestException("You can only manage your own users");
-			}
-			return;
-		}
-
-		// =============================
-		// Sub User
-		// =============================
-		if (isSubUser(currentUser)) {
-
-			if (isOwnerAdmin(targetUser)) {
-				throw new BadRequestException("You can not manage admin");
-			}
-			if (!isSubUser(targetUser)
-					|| !targetUser.getOwnerAdmin().getId().equals(currentUser.getOwnerAdmin().getId())) {
-
-				throw new BadRequestException("You can only manage users under same admin");
-			}
-			return;
-		}
-
-		throw new BadRequestException("You are not allowed to manage users");
-	}
-
-	private boolean isRootSuperAdmin(User user) {
-		return user.getOwnerAdmin() == null && user.getCreatedBy() == null;
-	}
-
-	private boolean isSuperAdmin(User user) {
-		return user.getOwnerAdmin() == null && user.getCreatedBy() != null;
-	}
-
-	private boolean isOwnerAdmin(User user) {
-		return user.getOwnerAdmin() != null && user.getOwnerAdmin().getId().equals(user.getId());
-	}
-
-	private boolean isSubUser(User user) {
-		return user.getOwnerAdmin() != null && !user.getOwnerAdmin().getId().equals(user.getId());
-	}
 
 }

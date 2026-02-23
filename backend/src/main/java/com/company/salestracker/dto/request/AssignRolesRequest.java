@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 
 
 @Data
-@Component
 @AllArgsConstructor
 @NoArgsConstructor
 public class AssignRolesRequest {

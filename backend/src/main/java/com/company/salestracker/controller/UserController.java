@@ -31,7 +31,8 @@ public class UserController {
 	// UPDATE USER
 	// ==============================
 	@PatchMapping("/{userId}")
-	@PreAuthorize("hasAuthority('UPDATE_USER')")
+//	@PreAuthorize("hasAuthority('UPDATE_USER')")
+	@PreAuthorize("hasAuthority('UPDATE_USER') or #userId == authentication.principal.id")
 	public ResponseEntity<ApiResponse<UserResponse>> updateUser(@PathVariable String userId,
 			@Valid @RequestBody UpdateUserRequest request) {
 

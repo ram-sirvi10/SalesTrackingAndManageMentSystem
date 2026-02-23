@@ -27,7 +27,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 	@Override
 	public RefreshToken createToken(User user) {
 
-		repository.deleteByUser(user);
+		repository.deleteByUserAndIsUsed(user, true);
 
 		RefreshToken refreshToken = RefreshToken.builder().token(UUID.randomUUID().toString()).user(user)
 				.expirationTime(LocalDateTime.now().plusDays(REFRESH_TOKEN_EXPIRY)).isUsed(false).build();

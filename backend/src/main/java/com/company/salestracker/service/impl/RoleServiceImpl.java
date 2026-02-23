@@ -34,13 +34,13 @@ public class RoleServiceImpl implements RoleService {
 	private final RoleRepository roleRepo;
 	private final PermissionRepository permissionRepo;
 	private final UserRepository userRepo;
-	private final AppCommon appUtil;
+	private final AppCommon appCommon;
 
 	@Override
 	@Transactional
 	public RoleResponse createRole(RoleRequest request) {
 
-		User loginUser = appUtil.currentLoginUser();
+		User loginUser = appCommon.currentLoginUser();
 		User ownerAdmin = loginUser.getOwnerAdmin();
 
 		request.setRoleName(request.getRoleName().toUpperCase());
@@ -64,7 +64,7 @@ public class RoleServiceImpl implements RoleService {
 			throw new BadRequestException(AppConstant.ROLE_ALREADY_EXIXT);
 		}
 
-		Set<Permission> permissions = new HashSet<>(permissionRepo.findAllById(request.getPermissions()));
+		Set<Permission> permissions = validatePermissions(request.getPermissions());
 
 		Role role = Role.builder().roleName(request.getRoleName()).permissions(permissions).ownerAdmin(ownerAdmin)
 				.description(request.getDescription()).createdBy(loginUser).build();
@@ -132,7 +132,7 @@ public class RoleServiceImpl implements RoleService {
 	@Override
 	public List<RoleResponse> getAllRoll() {
 
-		User loginUser = appUtil.currentLoginUser();
+		User loginUser = appCommon.currentLoginUser();
 
 		if (loginUser.getOwnerAdmin() != null) {
 
@@ -156,9 +156,9 @@ public class RoleServiceImpl implements RoleService {
 	@Override
 	public List<RoleResponse> getRolesByUser(String userId) {
 
-		User currentLoginUser = appUtil.currentLoginUser();
+		User currentLoginUser = appCommon.currentLoginUser();
 
-		User targetUser = appUtil.getActiveUser(userId);
+		User targetUser = appCommon.getActiveUser(userId);
 		if (currentLoginUser.getOwnerAdmin() != null
 				&& !targetUser.getOwnerAdmin().getId().equals(currentLoginUser.getOwnerAdmin().getId())) {
 			throw new BadRequestException("Cannot view roles of this user");
@@ -171,8 +171,8 @@ public class RoleServiceImpl implements RoleService {
 	@Override
 	public Boolean assignRolesToUser(AssignRolesRequest request) {
 
-		User currentLoginUser = appUtil.currentLoginUser();
-		User targetUser = appUtil.getActiveUser(request.getUserId());
+		User currentLoginUser = appCommon.currentLoginUser();
+		User targetUser = appCommon.getActiveUser(request.getUserId());
 
 		if (currentLoginUser.getOwnerAdmin() != null
 				&& !targetUser.getOwnerAdmin().getId().equals(currentLoginUser.getOwnerAdmin().getId())) {
@@ -180,6 +180,9 @@ public class RoleServiceImpl implements RoleService {
 		}
 
 		Set<Role> roles = new HashSet<>(roleRepo.findAllById(request.getRoles()));
+		if (targetUser.getRoles().stream().anyMatch(roles::contains)) {
+			throw new BadRequestException("Not assign already assigned role twice ");
+		}
 		roles.addAll(targetUser.getRoles());
 		boolean isSuperAdmin = isNewSuperAdmin(roles);
 		if (!isSuperAdmin && targetUser.getOwnerAdmin() == null) {
@@ -195,12 +198,18 @@ public class RoleServiceImpl implements RoleService {
 	@Override
 	public Boolean removeRoleFromUser(String userId, String roleId) {
 
-		User currentLoginUser = appUtil.currentLoginUser();
+		User currentLoginUser = appCommon.currentLoginUser();
 
-		User targetUser = appUtil.getActiveUser(userId);
-
+		User targetUser = appCommon.getActiveUser(userId);
+		Role role = checkRoleBelongToCurrentUser(roleId);
+		if (!targetUser.getRoles().contains(role)) {
+			throw new BadRequestException("User does not have this role assigned");
+		}
 		if (targetUser.getRoles().size() == 1) {
-			throw new BadRequestException("Not remove role because it have only have one role");
+			throw new BadRequestException("Not remove role ,because it have only have one role");
+		}
+		if (appCommon.isOwnerAdmin(targetUser)) {
+			throw new BadRequestException("Can't remove role from owner admin");
 		}
 
 		if (targetUser.getCreatedBy() == null && targetUser.getOwnerAdmin() == null)
@@ -210,10 +219,7 @@ public class RoleServiceImpl implements RoleService {
 
 			throw new BadRequestException("Cannot manage this user");
 		}
-		Role role = checkRoleBelongToCurrentUser(roleId);
-		if (!targetUser.getRoles().contains(role)) {
-			throw new BadRequestException("User does not have this role assigned");
-		}
+
 //		removePermissionFromDepandentRole(targetUser);
 		targetUser.getRoles().remove(role);
 		userRepo.save(targetUser);
@@ -227,11 +233,11 @@ public class RoleServiceImpl implements RoleService {
 
 		Role role = checkRoleBelongToCurrentUser(roleId);
 
-		
 		if (role.getCreatedBy() == null && role.getOwnerAdmin() == null) {
 			throw new BadRequestException("Default roles cannot be deleted");
 		}
-
+		if (userRepo.findUserIdsByRoleId(roleId).size() != 0)
+			throw new BadRequestException("Role assigned to user so you can not delete this role");
 //		permissionRemoval(role, role.getPermissions());
 		userRepo.removeRoleMappings(roleId);
 
@@ -247,7 +253,9 @@ public class RoleServiceImpl implements RoleService {
 		Role role = checkRoleBelongToCurrentUser(roleId);
 		Permission permission = permissionRepo.findById(permissionId)
 				.orElseThrow(() -> new BadRequestException("Permission not found"));
-
+		if (chcekPermissionsExistInRole(role, Set.of(permission))) {
+			throw new BadRequestException("Permission already found In that role");
+		}
 		role.getPermissions().add(permission);
 		roleRepo.save(role);
 	}
@@ -263,7 +271,9 @@ public class RoleServiceImpl implements RoleService {
 		Role role = checkRoleBelongToCurrentUser(roleId);
 
 		Set<Permission> permissions = validatePermissions(permissionIds);
-
+		if (chcekPermissionsExistInRole(role, permissions)) {
+			throw new BadRequestException("Some permission already found In that role");
+		}
 		role.getPermissions().addAll(permissions);
 
 		roleRepo.save(role);
@@ -279,7 +289,9 @@ public class RoleServiceImpl implements RoleService {
 		}
 		Permission permission = permissionRepo.findById(permissionId)
 				.orElseThrow(() -> new RuntimeException("Permission not found"));
-
+		if (!chcekPermissionsExistInRole(role, Set.of(permission))) {
+			throw new BadRequestException("Permission not found In that role");
+		}
 		if (!role.getPermissions().remove(permission)) {
 			return;
 		}
@@ -291,7 +303,7 @@ public class RoleServiceImpl implements RoleService {
 
 	private Role checkRoleBelongToCurrentUser(String roleId) {
 
-		User loginUser = appUtil.currentLoginUser();
+		User loginUser = appCommon.currentLoginUser();
 		User ownerAdmin = loginUser.getOwnerAdmin();
 
 		Role role = roleRepo.findById(roleId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
@@ -334,6 +346,10 @@ public class RoleServiceImpl implements RoleService {
 		}
 
 		return permissions;
+	}
+
+	private boolean chcekPermissionsExistInRole(Role role, Set<Permission> permisisons) {
+		return role.getPermissions().stream().anyMatch(permisisons::contains);
 	}
 
 	private void permissionRemoval(Role parentRole, Set<Permission> removedPermissions) {

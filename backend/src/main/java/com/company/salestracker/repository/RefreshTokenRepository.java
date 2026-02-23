@@ -13,8 +13,8 @@ import com.company.salestracker.entity.User;
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, String> {
 
 	  Optional<RefreshToken> findByToken(String token);
-
-	  void deleteByUser(User user);
 	  
 	    void deleteByUserAndIsUsed(User user,Boolean isUsed);
+
+		void deleteByUser(User user);
 }

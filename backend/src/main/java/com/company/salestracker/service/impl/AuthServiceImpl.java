@@ -59,6 +59,7 @@ public class AuthServiceImpl implements AuthService {
 	private final OtpRepository otpRepository;
 	private final PasswordResetTokenRepository passwordResetTokenRepository;
 	private final EmailService emailService;
+	private final int OTP_RETRY_AFTER_MIN = 2;
 //	private final RedisService redisService;
 
 	@Override
@@ -190,11 +191,19 @@ public class AuthServiceImpl implements AuthService {
 		}
 
 		User user = optionalUser.get();
+		Optional<Otp> optionalOtp = otpRepository.findTopByUserAndUsedFalseOrderByExpiryTimeDesc(user);
+		if (optionalOtp.isPresent()) {
+			Otp otp = optionalOtp.get();
+			if (otp.getCreatedAt().plusMinutes(OTP_RETRY_AFTER_MIN).isBefore(LocalDateTime.now())) {
+				throw new BadRequestException("Please wait 2 min before retry otp");
+			}
+		}
 		otpRepository.deleteByUser(user);
 		String otpValue = genarateOtp();
 		saveOtp(user, otpValue, OtpType.FORGOT_PASSWORD);
+		System.err.println("OTP= =====>>> " + otpValue);
 		try {
-			emailService.sendHtml(email, "Otp for reset passowrd", otpValue);
+			emailService.sendHtml(email, "Otp for reset passowrd", " Otp => " + otpValue);
 		} catch (UnsupportedEncodingException e) {
 
 			e.printStackTrace();
@@ -205,7 +214,6 @@ public class AuthServiceImpl implements AuthService {
 	}
 
 	@Override
-	@Transactional
 	public OtpResponse verifyOtp(OtpRequest request) {
 
 		User user = userRepo.findByEmail(request.getEmail())
@@ -214,18 +222,18 @@ public class AuthServiceImpl implements AuthService {
 		Otp otp = otpRepository.findTopByUserAndUsedFalseOrderByExpiryTimeDesc(user)
 				.orElseThrow(() -> new BadRequestException("Invalid OTP"));
 
-		if (otp.getExpiryTime().isBefore(LocalDateTime.now()))
-			throw new BadRequestException("OTP expired");
-
 		if (otp.getAttempts() >= 3)
 			throw new BadRequestException("Too many attempts");
 
 		if (!encoder.matches(request.getOtp(), otp.getOtpHash())) {
+
 			otp.setAttempts(otp.getAttempts() + 1);
+			System.err.println(otp.getAttempts());
 			otpRepository.save(otp);
 			throw new BadRequestException("Invalid OTP");
 		}
-
+		if (otp.getExpiryTime().isBefore(LocalDateTime.now()))
+			throw new BadRequestException("OTP expired");
 		otp.setUsed(true);
 		passwordResetTokenRepository.deleteByUser(user);
 		String resetToken = generateResetToken();

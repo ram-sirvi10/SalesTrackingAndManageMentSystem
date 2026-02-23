@@ -3,6 +3,7 @@ package com.company.salestracker.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,7 +56,7 @@ public class AuthController {
 	// ==============================
 	// FORGOT PASSWORD
 	// ==============================
-	@PostMapping("/forgot-password")
+	@PatchMapping("/forgot-password")
 	public ResponseEntity<ApiResponse<String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
 
 		authService.forgotPassword(request.getEmail());
@@ -73,7 +74,7 @@ public class AuthController {
 	}
 
 
-	@PostMapping("/reset-password")
+	@PatchMapping("/reset-password")
 	public ResponseEntity<ApiResponse<String>> resetPassword(
 	        @Valid @RequestBody ResetPasswordRequest request) {
 

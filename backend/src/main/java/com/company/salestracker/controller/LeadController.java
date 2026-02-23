@@ -115,7 +115,8 @@ public class LeadController {
 	// VIEW LEADS BY ASSIGNED USER
 	// ==============================
 	@GetMapping("/assigned/{userId}")
-	@PreAuthorize("hasAuthority('VIEW_ASSIGNED_LEADS')")
+//	@PreAuthorize("hasAuthority('VIEW_ASSIGNED_LEADS')")
+	@PreAuthorize("hasAuthority('VIEW_ASSIGNED_LEAD_OF_OTHER_USER') or #userId == authentication.principal.id")
 	public ResponseEntity<ApiResponse<PaginationResponse<?>>> viewLeadsByAssignedUser(@PathVariable String userId,
 			@RequestParam(defaultValue = "0") int pageNo, @RequestParam(defaultValue = "10") int pageSize) {
 

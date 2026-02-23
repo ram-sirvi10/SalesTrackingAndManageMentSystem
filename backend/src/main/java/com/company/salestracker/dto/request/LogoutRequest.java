@@ -12,7 +12,6 @@ import lombok.Setter;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Component
 @Getter
 @Setter
 public class LogoutRequest {

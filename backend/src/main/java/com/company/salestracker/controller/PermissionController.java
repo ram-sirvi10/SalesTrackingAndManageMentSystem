@@ -25,33 +25,33 @@ public class PermissionController {
 	// VIEW ALL PERMISSION
 	// ==============================
 	@GetMapping
-	@PreAuthorize("hasAuthority('VIEW_ALL_PERMISSIONS')")
+//	@PreAuthorize("hasAuthority('VIEW_ALL_PERMISSIONS')")
 	public ResponseEntity<ApiResponse<List<?>>> viewAllPermisisons() {
 
 		return ResponseEntity
-				.ok(ApiResponse.success("Leads fetched successfully", permissionService.getAllPermission()));
+				.ok(ApiResponse.success("PERMISSIONS fetched successfully", permissionService.getAllPermission()));
 	}
 
 	// ==============================
 	// VIEW ALL PERMISSION BY ROLE
 	// ==============================
-	@GetMapping("/{roleId}")
-	@PreAuthorize("hasAuthority('VIEW_ALL_PERMISSIONS_BY_ROLE')")
+	@GetMapping("/roles/{roleId}")
+//	@PreAuthorize("hasAuthority('VIEW_ALL_PERMISSIONS_BY_ROLE')")
 	public ResponseEntity<ApiResponse<List<?>>> viewAllPermissionsByRole(@PathVariable String roleId) {
 
 		return ResponseEntity.ok(
-				ApiResponse.success("Leads fetched successfully", permissionService.getAllPermissionByRole(roleId)));
+				ApiResponse.success("PERMISSIONS fetched successfully", permissionService.getAllPermissionByRole(roleId)));
 	}
 
 	// ==============================
 	// VIEW ALL PERMISSION BY USER
 	// ==============================
-	@GetMapping("/{userId}")
-	@PreAuthorize("hasAuthority('VIEW_ALL_PERMISSIONS_BY_USER')")
+	@GetMapping("/users/{userId}")
+//	@PreAuthorize("hasAuthority('VIEW_ALL_PERMISSIONS_BY_USER')")
 	public ResponseEntity<ApiResponse<List<?>>> viewAllPermissionsByUser(@PathVariable String userId) {
 
 		return ResponseEntity.ok(
-				ApiResponse.success("Leads fetched successfully", permissionService.getAllPermissionByUser(userId)));
+				ApiResponse.success("PERMISSIONS fetched successfully", permissionService.getAllPermissionByUser(userId)));
 	}
 
 }

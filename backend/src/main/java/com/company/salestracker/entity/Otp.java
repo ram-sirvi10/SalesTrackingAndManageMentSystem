@@ -2,6 +2,8 @@ package com.company.salestracker.entity;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.CurrentTimestamp;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -42,7 +44,11 @@ public class Otp {
 	
 	@Column(nullable = false)
 	private LocalDateTime expiryTime;
-
+	
+	@Column(nullable = false)
+	@Builder.Default
+	private LocalDateTime createdAt = LocalDateTime.now();
+	
 	private int attempts;
 
 	@Builder.Default

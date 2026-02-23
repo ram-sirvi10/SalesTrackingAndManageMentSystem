@@ -113,7 +113,8 @@ public class DealController {
 	// VIEW DEALS BY ASSIGNED USER
 	// ==============================
 	@GetMapping("/assigned/{userId}")
-	@PreAuthorize("hasAuthority('VIEW_ASSIGNED_DEALS_BY_USER')")
+//	@PreAuthorize("hasAuthority('VIEW_ASSIGNED_DEALS_BY_USER')")
+	@PreAuthorize("hasAuthority('VIEW_ASSIGNED_DEAL_OF_OTHER_USER') or #userId == authentication.principal.id")
 	public ResponseEntity<ApiResponse<PaginationResponse<?>>> viewLeadsByAssignedUser(@PathVariable String userId,
 			@RequestParam(defaultValue = "0") int pageNo, @RequestParam(defaultValue = "10") int pageSize) {
 

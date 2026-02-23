@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -23,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-	private final UserDetailsService userDetailsService;
+	private final CustomUserDetailsService userDetailsService;
 
 	private final JwtTokenProvider jwtTokenProvider;
 
@@ -62,7 +61,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			System.err.println("Token user == > " + username);
 
 			UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
+			if (!userDetails.isEnabled()) {
+				SecurityContextHolder.clearContext();
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User account is disabled");
+				return;
+			}
 			UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,
 					null, userDetails.getAuthorities());
 			authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

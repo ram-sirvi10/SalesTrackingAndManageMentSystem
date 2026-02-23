@@ -42,20 +42,16 @@ public class ReportServiceImpl implements ReportService {
 		return date.atTime(23, 59, 59);
 	}
 
-	// 1️⃣ SALES BY USER
 	@Override
 	public ReportResponse getSalesByUser(ReportFilter filter) {
 
 		User ownerAdmin = getOwnerAdmin();
 
 		List<Object[]> result = salesRepository.getSalesByUser(ownerAdmin, filter.getStartDate(), filter.getEndDate());
-
-		// 1️⃣ Build data list
 		List<Map<String, Object>> data = result.stream()
 				.map(row -> Map.of("userId", row[0], "userName", row[1], "totalSales", row[2], "totalDeals", row[3]))
 				.toList();
 
-		// 2️⃣ Calculate totals separately (clean way)
 		BigDecimal totalRevenue = result.stream().map(row -> (BigDecimal) row[2]).reduce(BigDecimal.ZERO,
 				BigDecimal::add);
 
@@ -66,7 +62,6 @@ public class ReportServiceImpl implements ReportService {
 				.build();
 	}
 
-	// 2️⃣ SALES BY PERIOD
 	@Override
 	public ReportResponse getSalesByPeriod(ReportFilter filter) {
 
@@ -81,7 +76,6 @@ public class ReportServiceImpl implements ReportService {
 				.endDate(filter.getEndDate()).data(data).build();
 	}
 
-	// 3️⃣ CONVERSION
 	@Override
 	public ReportResponse getConversion(ReportFilter filter) {
 
@@ -100,7 +94,6 @@ public class ReportServiceImpl implements ReportService {
 				.conversionPercentage(conversion).build();
 	}
 
-	// 4️⃣ LOST DEAL
 	@Override
 	public ReportResponse getLostDealReport(ReportFilter filter) {
 
@@ -117,7 +110,6 @@ public class ReportServiceImpl implements ReportService {
 				.build();
 	}
 
-	// 5️⃣ DASHBOARD
 	@Override
 	public ReportResponse getDashboardReport(ReportFilter filter) {
 

@@ -9,7 +9,6 @@ public class PermissionCodeConstants {
     // ==============================
     public static final String CREATE_USER = "CREATE_USER";
     public static final String READ_USER = "READ_USER";
-    public static final String UPDATE_PROFILE = "UPDATE_PROFILE";
     public static final String UPDATE_USER = "UPDATE_USER";
     public static final String DELETE_USER = "DELETE_USER";
     public static final String APPROVE_USER = "APPROVE_USER";
@@ -26,7 +25,7 @@ public class PermissionCodeConstants {
     // ROLE MANAGEMENT
     // ==============================
     public static final String CREATE_ROLE = "CREATE_ROLE";
-    public static final String VIEW_ROLE = "VIEW_ROLE";
+    public static final String VIEW_ROLE   = "VIEW_ROLE";
     public static final String UPDATE_ROLE = "UPDATE_ROLE";
     public static final String DELETE_ROLE = "DELETE_ROLE";
     public static final String ASSIGN_ROLE = "ASSIGN_ROLE";
@@ -50,6 +49,8 @@ public class PermissionCodeConstants {
     public static final String VIEW_LEAD_DETAILS = "VIEW_LEAD_DETAILS";
     public static final String VIEW_LEAD_ACTIVITY = "VIEW_LEAD_ACTIVITY";
     public static final String VIEW_ASSIGNED_LEAD_OF_OTHER_USER = "VIEW_ASSIGNED_LEAD_OF_OTHER_USER";
+    public static final String GET_LEAD = "GET_LEAD";
+   
     // ==============================
     // DEAL MANAGEMENT
     // ==============================

@@ -65,14 +65,16 @@ public class AppCommon {
 	}
 	public void validateAccess(User currentUser, User ownerAdmin) {
 		User currentOwner = resolveOwnerAdmin(currentUser);
+		System.err.println(currentOwner.getId());
+		System.err.println(ownerAdmin.getId());
 		if (!ownerAdmin.getId().equals(currentOwner.getId())) {
-			throw new BadRequestException("Access denied");
+			throw new BadRequestException("Bad request ");
 		}
 	}
 
 	public User resolveOwnerAdmin(User user) {
 		if (user.getOwnerAdmin() == null)
-			throw new BadRequestException("Super admin can not do this");
+			throw new BadRequestException("Super admin can not do this ");
 		return user.getOwnerAdmin() == null ? user : user.getOwnerAdmin();
 	}
 
@@ -102,5 +104,79 @@ public class AppCommon {
 				.filter(per -> per.getPermissionCode().equals(permission)).collect(Collectors.toList()).size() >= 1;
 	}
 
+	public void validateUserManagementAccess(User targetUser) {
+
+		User currentUser = currentLoginUser();
+
+		// Root super admin protection
+		if (isRootSuperAdmin(targetUser)) {
+			throw new BadRequestException("Main super admin cannot be modified");
+		}
+
+//		// Root super admin → full access
+//		if (isRootSuperAdmin(currentUser)) {
+//			return;
+//		}
+
+		// =============================
+		// Super Admin
+		// =============================
+		if (isSuperAdmin(currentUser)) {
+
+			if (isSubUser(targetUser)) {
+				throw new BadRequestException("Super admin cannot manage admin users");
+			}
+			if (isSuperAdmin(targetUser)) {
+				throw new BadRequestException("Super admin cannot manage other super admin");
+			}
+			return;
+		}
+
+		// =============================
+		// Owner Admin
+		// =============================
+		if (isOwnerAdmin(currentUser)) {
+
+			if (!targetUser.getOwnerAdmin().getId().equals(currentUser.getId())) {
+				throw new BadRequestException("You can only manage your own users");
+			}
+			return;
+		}
+
+		// =============================
+		// Sub User
+		// =============================
+		if (isSubUser(currentUser)) {
+
+			if (isOwnerAdmin(targetUser)) {
+				throw new BadRequestException("You can not manage admin");
+			}
+			if (!isSubUser(targetUser)
+					|| !targetUser.getOwnerAdmin().getId().equals(currentUser.getOwnerAdmin().getId())) {
+
+				throw new BadRequestException("You can only manage users under same admin");
+			}
+			return;
+		}
+
+		throw new BadRequestException("You are not allowed to manage users");
+	}
+
+	public boolean isRootSuperAdmin(User user) {
+		return user.getOwnerAdmin() == null && user.getCreatedBy() == null;
+	}
+
+	public boolean isSuperAdmin(User user) {
+		return user.getOwnerAdmin() == null && user.getCreatedBy() != null;
+	}
+
+	public boolean isOwnerAdmin(User user) {
+		return user.getOwnerAdmin() != null && user.getOwnerAdmin().getId().equals(user.getId());
+	}
+
+	public boolean isSubUser(User user) {
+		return user.getOwnerAdmin() != null && !user.getOwnerAdmin().getId().equals(user.getId());
+	}
+	
 	
 }

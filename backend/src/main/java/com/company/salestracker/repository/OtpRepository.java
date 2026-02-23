@@ -14,6 +14,8 @@ public interface OtpRepository extends JpaRepository<Otp, String> {
 
 	Optional<Otp> findTopByUserAndUsedFalseOrderByExpiryTimeDesc(User user);
 
+	boolean existsByUserAndUsedFalse(User user);
+	
 	void deleteByUser(User user);
 
 	void deleteByExpiryTimeBefore(LocalDateTime time);

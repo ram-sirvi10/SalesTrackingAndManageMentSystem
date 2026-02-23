@@ -72,10 +72,13 @@ public class DealServiceImpl implements DealService {
 		}
 
 		User assignedUser = appCommon.getActiveUser(request.getUserId());
-
+	
 		if (!appCommon.resolveOwnerAdmin(assignedUser).getId()
 				.equals(appCommon.resolveOwnerAdmin(currentUser).getId())) {
 			throw new BadRequestException("Cannot assign outside organization");
+		}
+		if(appCommon.isOwnerAdmin(assignedUser)) {
+			throw new BadRequestException("Cannot assign lead to admin");
 		}
 		deal.setAssignedTo(assignedUser);
 
@@ -118,6 +121,10 @@ public class DealServiceImpl implements DealService {
 
 		appCommon.validateAccess(currentUser, deal.getOwnerAdmin());
 
+		if (deal.getAssignedTo()==null) {
+			throw new BadRequestException("Only assigned deal  stage updated");
+		}
+		
 		if (!deal.getAssignedTo().getId().equals(currentUser.getId())) {
 			throw new BadRequestException("Only assigned user can update stage");
 		}
@@ -187,11 +194,7 @@ public class DealServiceImpl implements DealService {
 
 		User currentUser = appCommon.currentLoginUser();
 		User targetUser = appCommon.getActiveUser(userId);
-		if (!(currentUser.getId().equals(targetUser.getId())
-				&& !appCommon.hasPermission(currentUser, PermissionCodeConstants.VIEW_ASSIGNED_DEAL_OF_OTHER_USER))) {
-			throw new BadRequestException("Access denied");
-		}
-		appCommon.validateAccess(currentUser, targetUser);
+		appCommon.validateAccess(currentUser, targetUser.getOwnerAdmin());
 
 		Pageable pageable = PageRequest.of(pageNo, pageSize);
 

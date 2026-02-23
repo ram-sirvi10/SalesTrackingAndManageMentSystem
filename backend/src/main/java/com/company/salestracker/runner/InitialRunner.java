@@ -42,7 +42,7 @@ public class InitialRunner implements CommandLineRunner {
 				// USER
 				new Permission(PermissionCodeConstants.CREATE_USER, "Create new user"),
 				new Permission(PermissionCodeConstants.READ_USER, "View user"),
-				new Permission(PermissionCodeConstants.UPDATE_PROFILE, "Update own profile"),
+			
 				new Permission(PermissionCodeConstants.UPDATE_USER, "Update user"),
 				new Permission(PermissionCodeConstants.DELETE_USER, "Delete user"),
 				new Permission(PermissionCodeConstants.APPROVE_USER, "Approve user"),

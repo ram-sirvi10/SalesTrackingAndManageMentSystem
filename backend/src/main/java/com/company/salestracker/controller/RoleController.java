@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.company.salestracker.dto.request.AssignRolesRequest;
+import com.company.salestracker.dto.request.RemoveRoleRequest;
 import com.company.salestracker.dto.request.RoleRequest;
 import com.company.salestracker.dto.request.UpdateRolePermissionRequest;
 import com.company.salestracker.dto.response.ApiResponse;
@@ -119,9 +120,9 @@ public class RoleController {
 	// REMOVE ROLE FROM USER
 	@DeleteMapping("/remove-role")
 	@PreAuthorize("hasAuthority('REMOVE_ROLE_FROM_USER')")
-	public ResponseEntity<ApiResponse<?>> removeRoleFromUser(@RequestParam String userId, @RequestParam String roleId) {
+	public ResponseEntity<ApiResponse<?>> removeRoleFromUser(@Valid @RequestBody RemoveRoleRequest request) {
 
-		roleService.removeRoleFromUser(userId, roleId);
+		roleService.removeRoleFromUser(request.getUserId(), request.getRoleId());
 		return ResponseEntity.ok(ApiResponse.success("Role removed successfully"));
 	}
 

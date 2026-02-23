@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.company.salestracker.service.EmailService;
@@ -20,6 +21,7 @@ public class EmailServiceImpl implements EmailService {
 
 	private final JavaMailSender mailSender;
 
+
 	@Override
 	public void sendPlainText(String to, String subject, String body) {
 		SimpleMailMessage message = new SimpleMailMessage();
@@ -30,6 +32,7 @@ public class EmailServiceImpl implements EmailService {
 		mailSender.send(message);
 	}
 
+	
 	@Override
 	public void sendHtml(String to, String subject, String htmlBody)
 			throws MessagingException, UnsupportedEncodingException {
