@@ -102,7 +102,7 @@ public class RoleController {
 
 	// GET ROLE OF USER
 	@GetMapping("/user/{userId}")
-	@PreAuthorize("hasAuthority('VIEW_USER_ROLES')")
+	@PreAuthorize("hasAuthority('VIEW_USER_ROLES') or #userId == authentication.principal.id")
 	public ResponseEntity<ApiResponse<List<RoleResponse>>> getUserRoles(@PathVariable String userId) {
 
 		return ResponseEntity.ok(ApiResponse.success("User roles fetched", roleService.getRolesByUser(userId)));

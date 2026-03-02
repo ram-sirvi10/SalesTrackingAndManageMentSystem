@@ -19,58 +19,81 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 
-	@Value("${refreshtoken.expriration}")
-	private int REFRESH_TOKEN_EXPIRY;
+    @Value("${refreshtoken.expiration}")
+    private int REFRESH_TOKEN_EXPIRY_DAYS;
 
-	private final RefreshTokenRepository repository;
+    private final RefreshTokenRepository repository;
 
-	@Override
-	public RefreshToken createToken(User user) {
+    @Override
+    @Transactional
+    public RefreshToken createToken(User user) {
 
-		repository.deleteByUserAndIsUsed(user, true);
+        repository.deleteByUser(user);
 
-		RefreshToken refreshToken = RefreshToken.builder().token(UUID.randomUUID().toString()).user(user)
-				.expirationTime(LocalDateTime.now().plusDays(REFRESH_TOKEN_EXPIRY)).isUsed(false).build();
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(UUID.randomUUID().toString())
+                .user(user)
+                .expirationTime(LocalDateTime.now()
+                        .plusDays(REFRESH_TOKEN_EXPIRY_DAYS))
+                .isUsed(false)
+                .build();
 
-		return repository.save(refreshToken);
-	}
+        return repository.save(refreshToken);
+    }
 
-	@Override
-	public RefreshToken verifyToken(String token) {
+  
+    @Override
+    public RefreshToken verifyToken(String token) {
 
-		RefreshToken refreshToken = repository.findByToken(token)
-				.orElseThrow(() -> new BadRequestException("Invalid Refresh Token"));
+        RefreshToken refreshToken = repository.findByToken(token)
+                .orElseThrow(() -> new BadRequestException("Invalid Refresh Token"));
 
-		if (Boolean.TRUE.equals(refreshToken.getIsUsed())) {
-			throw new BadRequestException("Refresh Token already used");
-		}
+        if (Boolean.TRUE.equals(refreshToken.getIsUsed())) {
+            throw new BadRequestException("Refresh Token already used");
+        }
 
-		if (refreshToken.getExpirationTime().isBefore(LocalDateTime.now())) {
-			throw new BadRequestException("Refresh Token expired");
-		}
+        if (refreshToken.getExpirationTime().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Refresh Token expired");
+        }
 
-		return refreshToken;
-	}
+        return refreshToken;
+    }
 
-	@Override
-	@Transactional
-	public RefreshToken rotateToken(RefreshToken oldToken) {
+  
+    @Override
+    @Transactional
+    public RefreshToken rotateToken(RefreshToken oldToken) {
 
-		oldToken.setIsUsed(true);
-		repository.save(oldToken);
+       
+        oldToken.setIsUsed(true);
 
-		return createToken(oldToken.getUser());
-	}
+    
+        RefreshToken newToken = RefreshToken.builder()
+                .token(UUID.randomUUID().toString())
+                .user(oldToken.getUser())
+                .expirationTime(LocalDateTime.now()
+                        .plusDays(REFRESH_TOKEN_EXPIRY_DAYS))
+                .isUsed(false)
+                .build();
 
-	@Override
-	public void deleteRefreshToken(String refreshToken) {
-		RefreshToken token = repository.findByToken(refreshToken)
-				.orElseThrow(() -> new RuntimeException("Invalid Refresh Token"));
-		repository.delete(token);
-	}
+        return repository.save(newToken);
+    }
 
-	@Override
-	public void deleteByUser(User user) {
-		repository.deleteByUser(user);
-	}
+  
+    @Override
+    @Transactional
+    public void deleteRefreshToken(String token) {
+
+        RefreshToken refreshToken = repository.findByToken(token)
+                .orElseThrow(() -> new BadRequestException("Invalid Refresh Token"));
+
+        repository.delete(refreshToken);
+    }
+
+  
+    @Override
+    @Transactional
+    public void deleteByUser(User user) {
+        repository.deleteByUser(user);
+    }
 }

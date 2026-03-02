@@ -1,8 +1,11 @@
 package com.company.salestracker.controller;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,7 +16,6 @@ import com.company.salestracker.dto.request.ForgotPasswordRequest;
 import com.company.salestracker.dto.request.LoginRequest;
 import com.company.salestracker.dto.request.LogoutRequest;
 import com.company.salestracker.dto.request.OtpRequest;
-import com.company.salestracker.dto.request.RefreshTokenRequest;
 import com.company.salestracker.dto.request.ResetPasswordRequest;
 import com.company.salestracker.dto.request.UserRequest;
 import com.company.salestracker.dto.response.ApiResponse;
@@ -22,6 +24,8 @@ import com.company.salestracker.dto.response.OtpResponse;
 import com.company.salestracker.dto.response.UserResponse;
 import com.company.salestracker.service.AuthService;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
@@ -48,9 +52,18 @@ public class AuthController {
 	// LOGIN
 	// ==============================
 	@PostMapping("/login")
-	public ResponseEntity<ApiResponse<JwtResponse>> login(@RequestBody @Valid LoginRequest loginRequest) {
+	public ResponseEntity<ApiResponse<JwtResponse>> login(@RequestBody @Valid LoginRequest loginRequest,
+			HttpServletResponse response) {
 
-		return ResponseEntity.ok(ApiResponse.success("Login Successful", authService.loginUser(loginRequest)));
+		JwtResponse jwtResponse = authService.loginUser(loginRequest);
+
+		ResponseCookie cookie = ResponseCookie.from("refreshToken", jwtResponse.getRefreshToken()).httpOnly(true)
+				.secure(true).path("/").maxAge(7 * 24 * 60 * 60).sameSite("Strict").build();
+
+		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+		jwtResponse.setRefreshToken(null);
+
+		return ResponseEntity.ok(ApiResponse.success("Login Successful", jwtResponse));
 	}
 
 	// ==============================
@@ -65,33 +78,36 @@ public class AuthController {
 	}
 
 	@PostMapping("/verify-otp")
-	public ResponseEntity<ApiResponse<OtpResponse>> verifyOtp(
-	        @Valid @RequestBody OtpRequest request) {
-
-	    return ResponseEntity.ok(
-	            ApiResponse.success("OTP verified",
-	                    authService.verifyOtp(request)));
+	public ResponseEntity<ApiResponse<OtpResponse>> verifyOtp(@Valid @RequestBody OtpRequest request) {
+System.err.println("Verify otp ===> "+request);
+		return ResponseEntity.ok(ApiResponse.success("OTP verified", authService.verifyOtp(request)));
 	}
 
-
 	@PatchMapping("/reset-password")
-	public ResponseEntity<ApiResponse<String>> resetPassword(
-	        @Valid @RequestBody ResetPasswordRequest request) {
+	public ResponseEntity<ApiResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
 
-	    authService.resetPassword(request);
+		authService.resetPassword(request);
 
-	    return ResponseEntity.ok(
-	            ApiResponse.success("Password reset successful", null));
+		return ResponseEntity.ok(ApiResponse.success("Password reset successful", null));
 	}
 
 	// ==============================
 	// REFRESH TOKEN
 	// ==============================
 	@PostMapping("/refresh-token")
-	public ResponseEntity<ApiResponse<JwtResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+	public ResponseEntity<ApiResponse<JwtResponse>> refreshToken(
+			@CookieValue(name = "refreshToken", required = false) String refreshToken,HttpServletResponse response) {
+		if (refreshToken == null) {
+		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		System.err.println(refreshToken);
+		JwtResponse jwtResponse = authService.refreshToken(refreshToken);
+		ResponseCookie cookie = ResponseCookie.from("refreshToken", jwtResponse.getRefreshToken()).httpOnly(true)
+				.secure(true).path("/").maxAge(7 * 24 * 60 * 60).sameSite("Strict").build();
 
-		return ResponseEntity
-				.ok(ApiResponse.success("Token refreshed", authService.refreshToken(request.getRefreshToken())));
+		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+		jwtResponse.setRefreshToken(null);
+		return ResponseEntity.ok(ApiResponse.success("Token refreshed", jwtResponse));
 	}
 
 	// ==============================
@@ -99,9 +115,25 @@ public class AuthController {
 	// ==============================
 	@PostMapping("/logout")
 	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<ApiResponse<String>> logout(@Valid @RequestBody LogoutRequest request) {
+	public ResponseEntity<ApiResponse<String>> logout(HttpServletRequest request, HttpServletResponse response,
+			@CookieValue(name = "refreshToken", required = false) String refreshToken) {
+		if (refreshToken == null) {
+		    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		String authHeader = request.getHeader("Authorization");
+		String accessToken = null;
+		if (authHeader != null && authHeader.startsWith("Bearer ")) {
+			accessToken = authHeader.substring(7);
+		}
 
-		authService.logout(request);
-		return ResponseEntity.ok(ApiResponse.success("Logout successful", "Logged out successfully"));
+		// Clear refresh token cookie
+		ResponseCookie cookie = ResponseCookie.from("refreshToken", "").httpOnly(true).secure(true).path("/").maxAge(0)
+				.build();
+
+		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+		System.err.println(refreshToken);
+		authService.logout(LogoutRequest.builder().accessToken(accessToken).refreshToken(accessToken)
+				.refreshToken(refreshToken).build());
+		return ResponseEntity.ok(ApiResponse.success("Logout successful", null));
 	}
 }

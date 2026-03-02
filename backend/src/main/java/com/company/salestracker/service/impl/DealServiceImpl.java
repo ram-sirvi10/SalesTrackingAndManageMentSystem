@@ -21,7 +21,6 @@ import com.company.salestracker.repository.DealRepository;
 import com.company.salestracker.service.DealService;
 import com.company.salestracker.util.AppCommon;
 import com.company.salestracker.util.DateUtil;
-import com.company.salestracker.util.PermissionCodeConstants;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +46,9 @@ public class DealServiceImpl implements DealService {
 			throw new BadRequestException("Deal can only be created for QUALIFIED lead");
 		}
 
+		if (dealRepo.existsByLeadAndIsDeleteFalse(lead)) {
+			throw new BadRequestException("Deal already exist for this lead");
+		}
 		if (!DateUtil.isFutureDate(request.getClosingDate())) {
 			throw new BadRequestException("Closing date must be a future date");
 		}
@@ -72,12 +74,12 @@ public class DealServiceImpl implements DealService {
 		}
 
 		User assignedUser = appCommon.getActiveUser(request.getUserId());
-	
+
 		if (!appCommon.resolveOwnerAdmin(assignedUser).getId()
 				.equals(appCommon.resolveOwnerAdmin(currentUser).getId())) {
 			throw new BadRequestException("Cannot assign outside organization");
 		}
-		if(appCommon.isOwnerAdmin(assignedUser)) {
+		if (appCommon.isOwnerAdmin(assignedUser)) {
 			throw new BadRequestException("Cannot assign lead to admin");
 		}
 		deal.setAssignedTo(assignedUser);
@@ -121,10 +123,10 @@ public class DealServiceImpl implements DealService {
 
 		appCommon.validateAccess(currentUser, deal.getOwnerAdmin());
 
-		if (deal.getAssignedTo()==null) {
+		if (deal.getAssignedTo() == null) {
 			throw new BadRequestException("Only assigned deal  stage updated");
 		}
-		
+
 		if (!deal.getAssignedTo().getId().equals(currentUser.getId())) {
 			throw new BadRequestException("Only assigned user can update stage");
 		}

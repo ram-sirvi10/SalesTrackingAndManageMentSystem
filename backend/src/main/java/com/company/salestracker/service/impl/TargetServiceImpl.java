@@ -24,7 +24,6 @@ import com.company.salestracker.repository.SalesRepository;
 import com.company.salestracker.repository.TargetRepository;
 import com.company.salestracker.service.TargetService;
 import com.company.salestracker.util.AppCommon;
-import com.company.salestracker.util.PermissionCodeConstants;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -145,10 +144,6 @@ public class TargetServiceImpl implements TargetService {
 
 		User currentUser = appCommon.currentLoginUser();
 		User targetUser = appCommon.getActiveUser(userId);
-		if (!currentUser.getId().equals(targetUser.getId())
-				&& !appCommon.hasPermission(currentUser, PermissionCodeConstants.VIEW_TARGET_OF_OTHER_USER)) {
-			throw new BadRequestException("Access denied");
-		}
 		appCommon.validateAccess(currentUser, appCommon.resolveOwnerAdmin(targetUser));
 
 		Pageable pageable = PageRequest.of(pageNo, pageSize);
@@ -206,10 +201,6 @@ public class TargetServiceImpl implements TargetService {
 		User currentUser = appCommon.currentLoginUser();
 		User targetUser = appCommon.getActiveUser(userId);
 
-		if (!currentUser.getId().equals(targetUser.getId())
-				&& !appCommon.hasPermission(currentUser, PermissionCodeConstants.VIEW_TARGET_OF_OTHER_USER)) {
-			throw new BadRequestException("Access denied");
-		}
 		appCommon.validateAccess(currentUser, appCommon.resolveOwnerAdmin(targetUser));
 		Target target = targetRepo.findByUserAndTargetMonthAndTargetYearAndIsDeleteFalse(targetUser, month, year)
 				.orElseThrow(() -> new ResourceNotFoundException("Target not found"));

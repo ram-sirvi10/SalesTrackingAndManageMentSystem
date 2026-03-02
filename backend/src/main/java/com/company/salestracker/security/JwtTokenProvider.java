@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -51,8 +52,8 @@ public class JwtTokenProvider {
 		claims.put("phone", user.getPhone());
 		claims.put("tokenType", "ACCESS");
 
-		return Jwts.builder().setSubject(user.getEmail()).addClaims(claims).setIssuedAt(new Date())
-				.setExpiration(new Date(new Date().getTime() + jwtExpiration)).signWith(key, SignatureAlgorithm.HS512)
+		return Jwts.builder().setSubject(user.getEmail()).addClaims(claims).setIssuedAt(new Date()).setId(UUID.randomUUID().toString())
+				.setIssuer("Sales-Tracker").setExpiration(new Date(new Date().getTime() + jwtExpiration)).signWith(key, SignatureAlgorithm.HS512)
 				.compact();
 	}
 

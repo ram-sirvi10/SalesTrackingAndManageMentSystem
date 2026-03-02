@@ -20,7 +20,6 @@ import com.company.salestracker.repository.LeadActivityRepository;
 import com.company.salestracker.repository.LeadRepository;
 import com.company.salestracker.service.LeadService;
 import com.company.salestracker.util.AppCommon;
-import com.company.salestracker.util.PermissionCodeConstants;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

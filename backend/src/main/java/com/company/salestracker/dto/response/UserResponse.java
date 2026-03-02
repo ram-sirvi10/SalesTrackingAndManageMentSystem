@@ -20,6 +20,8 @@ public class UserResponse {
 
 	private String id;
 
+	private boolean isSuperAdmin;
+
 	private String name;
 
 	private String email;
@@ -28,6 +30,7 @@ public class UserResponse {
 
 	private String status;
 
-	private Set<RoleResponse> roles;
+	private Set<String> roles;
 
+	private Set<String> permissions;
 }

@@ -46,7 +46,8 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-		http.csrf(csrf -> csrf.disable())
+		http.csrf(csrf -> csrf.disable()).cors(cors -> {
+		})
 
 				.authorizeHttpRequests(auth -> auth
 
@@ -55,18 +56,13 @@ public class SecurityConfig {
 								"/api/auth/verify-otp", "/api/auth/reset-password", "/error")
 						.permitAll()
 
-						
 						.requestMatchers("/api/auth/**").authenticated()
 
-				
 						.requestMatchers("/api/roles/**").authenticated()
 
-					
 						.requestMatchers("/api/users/**").authenticated()
 
-						
-						.anyRequest().authenticated()
-						)
+						.anyRequest().authenticated())
 
 				.authenticationProvider(authenticationProvider())
 

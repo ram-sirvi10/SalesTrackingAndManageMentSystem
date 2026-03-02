@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Component;
 
 import com.company.salestracker.dto.request.LeadRequest;
 import com.company.salestracker.dto.request.TargetRequest;
@@ -24,7 +25,11 @@ import com.company.salestracker.entity.Role;
 import com.company.salestracker.entity.Sale;
 import com.company.salestracker.entity.Target;
 import com.company.salestracker.entity.User;
+import com.company.salestracker.util.AppCommon;
 
+import lombok.RequiredArgsConstructor;
+
+@Component
 public class Mapper {
 
 	public static User toEntity(UserRequest request, Set<Role> roles) {
@@ -38,12 +43,17 @@ public class Mapper {
 
 	public static UserResponse toResponse(User user) {
 
-		if (user == null)
+		if (user == null) {
 			return null;
+		}
 
-		return UserResponse.builder().id(user.getId()).name(user.getName()).email(user.getEmail())
-				.phone(user.getPhone()).status(user.getStatus().name()).roles(toRoleResponseSet(user.getRoles()))
-				.build();
+		Set<String> roles = user.getRoles().stream().map(role -> role.getRoleName()).collect(Collectors.toSet());
+		Set<String> permissions = user.getRoles().stream().flatMap(role -> role.getPermissions().stream())
+				.map(permission -> permission.getPermissionCode()).collect(Collectors.toSet());
+
+		return UserResponse.builder().id(user.getId()).email(user.getEmail()).name(user.getName())
+				.isSuperAdmin(user.getOwnerAdmin()==null)
+				.phone(user.getPhone()).status(user.getStatus().name()).roles(roles).permissions(permissions).build();
 	}
 
 	public static RoleResponse toResponse(Role role) {
@@ -70,8 +80,7 @@ public class Mapper {
 		return LeadResponse.builder().leadId(lead.getId()).name(lead.getName()).email(lead.getEmail())
 				.phone(lead.getPhone()).assignedToId(lead.getAssignedto() != null ? lead.getAssignedto().getId() : null)
 				.assignedPersonEmail(lead.getAssignedto() != null ? lead.getAssignedto().getEmail() : null)
-				.status(lead.getStatus().name())
-				.source(lead.getSource()).createdAt(lead.getCreatedAt()).build();
+				.status(lead.getStatus().name()).source(lead.getSource()).createdAt(lead.getCreatedAt()).build();
 	}
 
 	public static Lead toEntity(LeadRequest lead) {
@@ -91,8 +100,8 @@ public class Mapper {
 	}
 
 	public static SaleResponse toResponse(Sale sale) {
-		return SaleResponse.builder().id(sale.getId()).dealId(sale.getDeal() != null ? sale.getDeal().getId() : null)
-				.saleAmount(sale.getSaleAmount())
+		return SaleResponse.builder().saleId(sale.getId())
+				.dealId(sale.getDeal() != null ? sale.getDeal().getId() : null).saleAmount(sale.getSaleAmount())
 				.dealAssignedUser(sale.getDeal() != null && sale.getDeal().getAssignedTo() != null
 						? sale.getDeal().getAssignedTo().getEmail()
 						: null)
@@ -123,19 +132,13 @@ public class Mapper {
 
 	public static TargetResponse toResponse(Target target) {
 
-	   
+		return TargetResponse.builder().id(target.getId()).userId(target.getUser().getId())
+				.userEmail(target.getUser().getEmail()).userName(target.getUser().getName())
+				.targetMonth(target.getTargetMonth()).targetYear(target.getTargetYear())
+				.targetAmount(target.getTargetAmount())
 
-	        return TargetResponse.builder()
-	                .id(target.getId())
-	                .userId(target.getUser().getId())
-	                .userEmail(target.getUser().getEmail())
-	                .userName(target.getUser().getName())
-	                .targetMonth(target.getTargetMonth())
-	                .targetYear(target.getTargetYear())
-	                .targetAmount(target.getTargetAmount())
-	             
-	                .build();
-	    }
+				.build();
+	}
 
 	public static <T> PaginationResponse<T> toPaginationResponse(Page<T> page) {
 		return PaginationResponse.<T>builder().content(page.getContent()).pageNumber(page.getNumber())

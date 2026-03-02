@@ -93,7 +93,7 @@ public class TargetController {
 	// VIEW TARGETS BY USER
 	// ==============================
 	@GetMapping("/user/{userId}")
-	@PreAuthorize("hasAuthority('VIEW_TARGET_OF_OTHER_USER') or #userId == authentication.principal.id")
+	@PreAuthorize("hasAuthority('VIEW_TARGET_OF_USER') or #userId == authentication.principal.id")
 	public ResponseEntity<ApiResponse<PaginationResponse<TargetResponse>>> viewTargetsByUser(
 			@PathVariable String userId, @RequestParam(defaultValue = "0") int pageNo,
 			@RequestParam(defaultValue = "10") int pageSize) {
@@ -118,7 +118,7 @@ public class TargetController {
 	// USER PERFORMANCE
 	// ==============================
 	@GetMapping("/performance/user/{userId}")
-	@PreAuthorize("hasAuthority('VIEW_USER_TARGET_PERFORMANCE')")
+	@PreAuthorize("hasAuthority('VIEW_USER_TARGET_PERFORMANCE') or #userId == authentication.principal.id")
 	public ResponseEntity<ApiResponse<TargetResponse>> getUserPerformance(@PathVariable String userId,
 			@RequestParam Integer month, @RequestParam Integer year) {
 

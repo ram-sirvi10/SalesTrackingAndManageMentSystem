@@ -44,7 +44,7 @@ public class SalesController {
 	// UPDATE PAYMENT STATUS
 	// ==============================
 	@PatchMapping("/payment-status")
-	@PreAuthorize("hasAuthority('UPDATE_PAYMENT_STATUS')")
+//	@PreAuthorize("hasAuthority('UPDATE_PAYMENT_STATUS')")
 	public ResponseEntity<ApiResponse<SaleResponse>> updatePaymentStatus(
 			@Valid @RequestBody PaymentStatusUpdateRequest request) {
 
@@ -78,7 +78,8 @@ public class SalesController {
 	// VIEW SALES BY COMMISSION USER
 	// ==============================
 	@GetMapping("/commission/{userId}")
-	@PreAuthorize("hasAuthority('VIEW_SALES_BY_USER')")
+//	@PreAuthorize("hasAuthority('VIEW_SALES_BY_USER') or #userId == authentication.principal.id")
+
 	public ResponseEntity<ApiResponse<PaginationResponse<?>>> viewSalesByCommissionUser(@PathVariable String userId,
 			@RequestParam(defaultValue = "0") int pageNo, @RequestParam(defaultValue = "10") int pageSize) {
 

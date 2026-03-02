@@ -28,7 +28,7 @@ public interface SalesRepository extends JpaRepository<Sale, String> {
 			        YEAR(s.saleDate),
 			        NULL,
 			        SUM(s.saleAmount),
-			        SUM(CASE WHEN s.paymentStatus = 'PAID' THEN s.saleAmount ELSE 0 END),
+			        SUM(CASE WHEN s.paymentStatus = 'SUCCESSFUL' THEN s.saleAmount ELSE 0 END),
 			        SUM(CASE WHEN s.paymentStatus = 'PENDING' THEN s.saleAmount ELSE 0 END),
 			        COUNT(s)
 			    )
@@ -45,7 +45,7 @@ public interface SalesRepository extends JpaRepository<Sale, String> {
 			        YEAR(s.saleDate),
 			        MONTH(s.saleDate),
 			        SUM(s.saleAmount),
-			        SUM(CASE WHEN s.paymentStatus = 'PAID' THEN s.saleAmount ELSE 0 END),
+			        SUM(CASE WHEN s.paymentStatus = 'SUCCESSFUL' THEN s.saleAmount ELSE 0 END),
 			        SUM(CASE WHEN s.paymentStatus = 'PENDING' THEN s.saleAmount ELSE 0 END),
 			        COUNT(s)
 			    )
@@ -97,7 +97,7 @@ public interface SalesRepository extends JpaRepository<Sale, String> {
 			    FROM Sale s
 			    WHERE s.ownerAdmin = :ownerAdmin
 			    AND s.isDelete = false
-			    AND s.paymentStatus = 'PAID'
+			    AND s.paymentStatus = 'SUCCESSFUL'
 			    AND s.saleDate BETWEEN :startDate AND :endDate
 			""")
 	BigDecimal getPaidRevenue(User ownerAdmin, LocalDate startDate, LocalDate endDate);

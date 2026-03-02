@@ -5,7 +5,7 @@ import com.company.salestracker.dto.response.PaginationResponse;
 import com.company.salestracker.dto.response.UserResponse;
 
 public interface UserService {
-
+	UserResponse getUserById(String userId);
 	void approveRequest(String userId);
 
 	void rejectRequest(String userId);
@@ -31,5 +31,7 @@ public interface UserService {
 	PaginationResponse<?> getAll(int pageNo, int pageSize);
 
 	PaginationResponse<?> getAllPendingRequest(int pageNo, int pageSize);
+
+	UserResponse getUserByEmail(String email);
 
 }

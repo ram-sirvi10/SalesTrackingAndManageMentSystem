@@ -4,6 +4,7 @@ package com.company.salestracker.repository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,12 +13,17 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.company.salestracker.entity.Deal;
 import com.company.salestracker.entity.User;
+import java.util.List;
+import com.company.salestracker.entity.Lead;
+
 
 public interface DealRepository extends JpaRepository<Deal, String> {
 
 	Page<Deal> findByOwnerAdminAndIsDeleteFalse(User ownerAdmin, Pageable pageable);
 
 	Page<Deal> findByCreatedByAndIsDeleteFalse(User user, Pageable pageable);
+	
+	boolean existsByLeadAndIsDeleteFalse(Lead lead);
 
 	@Query("""
 			    SELECT COUNT(d)

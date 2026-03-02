@@ -2,6 +2,7 @@ package com.company.salestracker.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -27,11 +28,23 @@ public class UserController {
 
 	private final UserService userService;
 
+	  @GetMapping("/me")
+		@PreAuthorize("isAuthenticated()")
+	    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(
+	            Authentication authentication) {
+
+	        String email = authentication.getName();
+
+	        UserResponse user = userService.getUserByEmail(email);
+
+	        return ResponseEntity.ok(
+	                ApiResponse.success("User fetched successfully", user)
+	        );
+	    }
 	// ==============================
 	// UPDATE USER
 	// ==============================
 	@PatchMapping("/{userId}")
-//	@PreAuthorize("hasAuthority('UPDATE_USER')")
 	@PreAuthorize("hasAuthority('UPDATE_USER') or #userId == authentication.principal.id")
 	public ResponseEntity<ApiResponse<UserResponse>> updateUser(@PathVariable String userId,
 			@Valid @RequestBody UpdateUserRequest request) {
@@ -120,6 +133,22 @@ public class UserController {
 		return ResponseEntity.ok(ApiResponse.success("User status updated successfully"));
 	}
 
+	
+	// ==============================
+	// GET USER BY ID
+	// ==============================
+	@GetMapping("/{userId}")
+	@PreAuthorize("hasAuthority('VIEW_ALL_USERS') or #userId == authentication.principal.id")
+	public ResponseEntity<ApiResponse<UserResponse>> getUserById(
+	        @PathVariable String userId) {
+
+	    return ResponseEntity.ok(
+	            ApiResponse.success(
+	                    "User fetched successfully",
+	                    userService.getUserById(userId)
+	            )
+	    );
+	}
 //	// ==============================
 //	// GET ALL SUPER ADMINS
 //	// ==============================

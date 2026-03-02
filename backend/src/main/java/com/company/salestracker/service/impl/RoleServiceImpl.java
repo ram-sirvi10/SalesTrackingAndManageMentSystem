@@ -178,7 +178,9 @@ public class RoleServiceImpl implements RoleService {
 				&& !targetUser.getOwnerAdmin().getId().equals(currentLoginUser.getOwnerAdmin().getId())) {
 			throw new BadRequestException("Cannot manage this user");
 		}
-
+		if (targetUser.getId().equalsIgnoreCase(currentLoginUser.getId())) {
+			throw new BadRequestException("Can not remove own roles");
+		}
 		Set<Role> roles = new HashSet<>(roleRepo.findAllById(request.getRoles()));
 		if (targetUser.getRoles().stream().anyMatch(roles::contains)) {
 			throw new BadRequestException("Not assign already assigned role twice ");
@@ -204,6 +206,9 @@ public class RoleServiceImpl implements RoleService {
 		Role role = checkRoleBelongToCurrentUser(roleId);
 		if (!targetUser.getRoles().contains(role)) {
 			throw new BadRequestException("User does not have this role assigned");
+		}
+		if (targetUser.getId().equalsIgnoreCase(currentLoginUser.getId())) {
+			throw new BadRequestException("Can not remove own roles");
 		}
 		if (targetUser.getRoles().size() == 1) {
 			throw new BadRequestException("Not remove role ,because it have only have one role");

@@ -177,72 +177,116 @@ public class AuthServiceImpl implements AuthService {
 //		redisService.set("blacklist:" + request.getAccessToken(),
 //				jwtTokenProvider.getRemainingValidity(request.getAccessToken()));
 
+
 		refreshTokenService.deleteRefreshToken(request.getRefreshToken());
 	}
 
-	@Override
 	@Transactional
 	public void forgotPassword(String email) {
 
-		Optional<User> optionalUser = userRepo.findByEmail(email);
+	    Optional<User> optionalUser = userRepo.findByEmail(email);
 
-		if (optionalUser.isEmpty() || optionalUser.get().getIsDelete()) {
-			return;
-		}
+	    if (optionalUser.isEmpty() || optionalUser.get().getIsDelete()) {
+	        return;
+	    }
 
-		User user = optionalUser.get();
-		Optional<Otp> optionalOtp = otpRepository.findTopByUserAndUsedFalseOrderByExpiryTimeDesc(user);
-		if (optionalOtp.isPresent()) {
-			Otp otp = optionalOtp.get();
-			if (otp.getCreatedAt().plusMinutes(OTP_RETRY_AFTER_MIN).isBefore(LocalDateTime.now())) {
-				throw new BadRequestException("Please wait 2 min before retry otp");
-			}
-		}
-		otpRepository.deleteByUser(user);
-		String otpValue = genarateOtp();
-		saveOtp(user, otpValue, OtpType.FORGOT_PASSWORD);
-		System.err.println("OTP= =====>>> " + otpValue);
-		try {
-			emailService.sendHtml(email, "Otp for reset passowrd", " Otp => " + otpValue);
-		} catch (UnsupportedEncodingException e) {
+	    User user = optionalUser.get();
 
-			e.printStackTrace();
-		} catch (MessagingException e) {
+	    Optional<Otp> optionalOtp =
+	            otpRepository.findTopByUserAndUsedFalseOrderByExpiryTimeDesc(user);
 
-			e.printStackTrace();
-		}
+	    if (optionalOtp.isPresent()) {
+	        Otp existingOtp = optionalOtp.get();
+
+	       
+	        if (existingOtp.getCreatedAt()
+	                .plusMinutes(OTP_RETRY_AFTER_MIN)
+	                .isAfter(LocalDateTime.now())) {
+
+	            throw new BadRequestException(
+	                "Please wait " + OTP_RETRY_AFTER_MIN + " minutes before requesting new OTP"
+	            );
+	        }
+
+	      
+	        otpRepository.delete(existingOtp);
+	    }
+
+	    String otpValue = genarateOtp();
+	    saveOtp(user, otpValue, OtpType.FORGOT_PASSWORD);
+System.err.println("Otp send ===>>> "+otpValue);
+	    try {
+	        emailService.sendHtml(email, "Otp for reset password", "Otp => " + otpValue);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
 	}
 
-	@Override
+	@Transactional
 	public OtpResponse verifyOtp(OtpRequest request) {
 
-		User user = userRepo.findByEmail(request.getEmail())
-				.orElseThrow(() -> new BadRequestException("Invalid request"));
+	    User user = userRepo.findByEmail(request.getEmail())
+	            .orElseThrow(() -> new BadRequestException("Invalid request"));
 
-		Otp otp = otpRepository.findTopByUserAndUsedFalseOrderByExpiryTimeDesc(user)
-				.orElseThrow(() -> new BadRequestException("Invalid OTP"));
+	    Otp otp = otpRepository
+	            .findTopByUserAndUsedFalseOrderByExpiryTimeDesc(user)
+	            .orElseThrow(() -> new BadRequestException("Invalid OTP"));
 
-		if (otp.getAttempts() >= 3)
-			throw new BadRequestException("Too many attempts");
+	  
+	    if (otp.getExpiryTime().isBefore(LocalDateTime.now())) {
+	        throw new BadRequestException("OTP expired");
+	    }
 
-		if (!encoder.matches(request.getOtp(), otp.getOtpHash())) {
+	   
+	    if (otp.getAttempts() >= 3) {
+	        throw new BadRequestException("Too many failed attempts. Please request new OTP.");
+	    }
 
-			otp.setAttempts(otp.getAttempts() + 1);
-			System.err.println(otp.getAttempts());
-			otpRepository.save(otp);
-			throw new BadRequestException("Invalid OTP");
-		}
-		if (otp.getExpiryTime().isBefore(LocalDateTime.now()))
-			throw new BadRequestException("OTP expired");
-		otp.setUsed(true);
-		passwordResetTokenRepository.deleteByUser(user);
-		String resetToken = generateResetToken();
-		PasswordResetToken token = PasswordResetToken.builder().token(resetToken).user(user)
-				.expiryTime(LocalDateTime.now().plusMinutes(10)).used(false).build();
+	
+	    if (!encoder.matches(request.getOtp(), otp.getOtpHash())) {
 
-		passwordResetTokenRepository.save(token);
+	        otp.setAttempts(otp.getAttempts() + 1);
+	        otpRepository.save(otp);
 
-		return OtpResponse.builder().message("OTP verified successfully").resetToken(resetToken).build();
+	        throw new BadRequestException(
+	            "Invalid OTP. Remaining attempts: " + (3 - otp.getAttempts())
+	        );
+	    }
+
+	   
+	    otp.setUsed(true);
+	    otpRepository.save(otp);
+
+	    Optional<PasswordResetToken> existing =
+	            passwordResetTokenRepository.findByUser(user);
+
+	    String resetToken = generateResetToken();
+
+	    if (existing.isPresent()) {
+
+	        PasswordResetToken token = existing.get();
+	        token.setToken(resetToken);
+	        token.setExpiryTime(LocalDateTime.now().plusMinutes(10));
+	        token.setUsed(false);
+
+	        passwordResetTokenRepository.save(token);
+
+	    } else {
+
+	        PasswordResetToken token = PasswordResetToken.builder()
+	                .token(resetToken)
+	                .user(user)
+	                .expiryTime(LocalDateTime.now().plusMinutes(10))
+	                .used(false)
+	                .build();
+
+	        passwordResetTokenRepository.save(token);
+	    }
+
+	    return OtpResponse.builder()
+	            .message("OTP verified successfully")
+	            .resetToken(resetToken)
+	            .build();
 	}
 
 	@Override
@@ -305,3 +349,5 @@ public class AuthServiceImpl implements AuthService {
 		return true;
 	}
 }
+
+

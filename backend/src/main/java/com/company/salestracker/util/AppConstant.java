@@ -13,7 +13,8 @@ public class AppConstant {
 	public static final String VALID_ROLE_REGEX = "^[A-Za-z]+(_[A-Za-z]+)*$";
 	public static final String LEAD_STATUS_REGEX = "^(CONTACTED|QUALIFIED|LOST)$";
 	public static final String DEAL_STAGE_REGEX = "^(PROPOSAL_SENT|NEGOTIATION|LOST|WON)$";
-
+	public static final String PAYMENT_STATUS_REGEX = "^(PENDING|FAILED|SUCCESSFUL)$";
+	public static final String PAYMENT_STATUS_ERROR = "Payment status must be PENDING or FAILED or SUCCESSFUL";
 	public static final String  LEAD_STATUS_ERROR = "Lead status must be CONTACTED or QUALIFIED or LOST";
 	public static final String  DEAL_STATUS_ERROR = "DEAL stage must be PROPOSAL_SENT | NEGOTIATION | LOST | WON";
 
@@ -42,6 +43,7 @@ public class AppConstant {
 	public static final String DESCRIPTION_ERROR = "DESCRIPTION MIN 10 WORDS REQUIRED";
 	public static final String ADMIN_IS_BLOCKED = "Your Admin is temporary blocked";
 	public static final String ADMIN_NOT_FOUND = "Your Admin not found or deleted ";
+
 
 	
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.company.salestracker.dto.request.ReportFilter;
 import com.company.salestracker.dto.response.ReportResponse;
 import com.company.salestracker.entity.User;
+import com.company.salestracker.exception.BadRequestException;
 import com.company.salestracker.repository.DealRepository;
 import com.company.salestracker.repository.LeadRepository;
 import com.company.salestracker.repository.SalesRepository;
@@ -47,7 +48,12 @@ public class ReportServiceImpl implements ReportService {
 
 		User ownerAdmin = getOwnerAdmin();
 
+		if(filter.getEndDate().isBefore(filter.getStartDate())) {
+			throw new BadRequestException("Start date must be before end date");
+		}
+		
 		List<Object[]> result = salesRepository.getSalesByUser(ownerAdmin, filter.getStartDate(), filter.getEndDate());
+		System.err.println("Get Sales By User === >  "+result);
 		List<Map<String, Object>> data = result.stream()
 				.map(row -> Map.of("userId", row[0], "userName", row[1], "totalSales", row[2], "totalDeals", row[3]))
 				.toList();
@@ -67,6 +73,9 @@ public class ReportServiceImpl implements ReportService {
 
 		User ownerAdmin = getOwnerAdmin();
 
+		if(filter.getEndDate().isBefore(filter.getStartDate())) {
+			throw new BadRequestException("Start date must be before end date");
+		}
 		List<Object[]> result = salesRepository.getSalesByMonth(ownerAdmin, filter.getStartDate(), filter.getEndDate());
 
 		List<Map<String, Object>> data = result.stream().map(row -> Map.of("month", row[0], "totalSales", row[1]))
@@ -80,7 +89,9 @@ public class ReportServiceImpl implements ReportService {
 	public ReportResponse getConversion(ReportFilter filter) {
 
 		User ownerAdmin = getOwnerAdmin();
-
+		if(filter.getEndDate().isBefore(filter.getStartDate())) {
+			throw new BadRequestException("Start date must be before end date");
+		}
 		Long totalLeads = leadRepository.countLeadsBetweenDates(ownerAdmin, startOfDay(filter.getStartDate()),
 				endOfDay(filter.getEndDate()));
 
@@ -98,7 +109,9 @@ public class ReportServiceImpl implements ReportService {
 	public ReportResponse getLostDealReport(ReportFilter filter) {
 
 		User ownerAdmin = getOwnerAdmin();
-
+		if(filter.getEndDate().isBefore(filter.getStartDate())) {
+			throw new BadRequestException("Start date must be before end date");
+		}
 		Long count = dealRepository.countLostDeals(ownerAdmin, filter.getStartDate(), filter.getEndDate());
 
 		BigDecimal amount = dealRepository.sumLostAmount(ownerAdmin, filter.getStartDate(), filter.getEndDate());
@@ -114,7 +127,9 @@ public class ReportServiceImpl implements ReportService {
 	public ReportResponse getDashboardReport(ReportFilter filter) {
 
 		User ownerAdmin = getOwnerAdmin();
-
+		if(filter.getEndDate().isBefore(filter.getStartDate())) {
+			throw new BadRequestException("Start date must be before end date");
+		}
 		BigDecimal totalRevenue = salesRepository.getTotalRevenue(ownerAdmin, filter.getStartDate(),
 				filter.getEndDate());
 

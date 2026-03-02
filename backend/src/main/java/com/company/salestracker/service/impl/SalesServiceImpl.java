@@ -26,7 +26,6 @@ import com.company.salestracker.repository.SalesRepository;
 import com.company.salestracker.service.SalesService;
 import com.company.salestracker.util.AppCommon;
 import com.company.salestracker.util.DateUtil;
-import com.company.salestracker.util.PermissionCodeConstants;
 
 import lombok.RequiredArgsConstructor;
 
@@ -49,9 +48,9 @@ public class SalesServiceImpl implements SalesService {
 			throw new BadRequestException("Sale date can not be future date");
 		}
 
-		if (saleRepo.existsByDealAndIsDeleteFalse(deal)) {
-			throw new BadRequestException("Sale already created for this deal");
-		}
+//		if (saleRepo.existsByDealAndIsDeleteFalse(deal)) {
+//			throw new BadRequestException("Sale already created for this deal");
+//		}
 		BigDecimal expected = deal.getExpectedAmount();
 		BigDecimal saleAmount = request.getSaleAmount();
 
@@ -117,12 +116,8 @@ public class SalesServiceImpl implements SalesService {
 	public PaginationResponse<SaleResponse> getSalesByCommissionUser(String userId, int pageNo, int pageSize) {
 		User currentUser = appCommon.currentLoginUser();
 		User targetUser = appCommon.getActiveUser(userId);
-		if (!currentUser.getId().equals(targetUser.getId())
-				&& !appCommon.hasPermission(currentUser, PermissionCodeConstants.VIEW_SALES_OF_OTHER_USER)) {
-			throw new BadRequestException("Access denied");
-		}
 
-		appCommon.validateAccess(currentUser, targetUser);
+		appCommon.validateAccess(currentUser, targetUser.getOwnerAdmin());
 
 		Pageable pageable = PageRequest.of(pageNo, pageSize);
 

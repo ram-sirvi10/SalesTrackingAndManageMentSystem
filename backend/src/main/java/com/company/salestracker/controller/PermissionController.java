@@ -36,7 +36,7 @@ public class PermissionController {
 	// VIEW ALL PERMISSION BY ROLE
 	// ==============================
 	@GetMapping("/roles/{roleId}")
-//	@PreAuthorize("hasAuthority('VIEW_ALL_PERMISSIONS_BY_ROLE')")
+	@PreAuthorize("hasAuthority('VIEW_ALL_PERMISSIONS_BY_ROLE')")
 	public ResponseEntity<ApiResponse<List<?>>> viewAllPermissionsByRole(@PathVariable String roleId) {
 
 		return ResponseEntity.ok(
@@ -47,7 +47,7 @@ public class PermissionController {
 	// VIEW ALL PERMISSION BY USER
 	// ==============================
 	@GetMapping("/users/{userId}")
-//	@PreAuthorize("hasAuthority('VIEW_ALL_PERMISSIONS_BY_USER')")
+	@PreAuthorize("hasAuthority('VIEW_ALL_PERMISSIONS_BY_USER') or #userId == authentication.principal.id")
 	public ResponseEntity<ApiResponse<List<?>>> viewAllPermissionsByUser(@PathVariable String userId) {
 
 		return ResponseEntity.ok(

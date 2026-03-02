@@ -65,10 +65,9 @@ public class AppCommon {
 	}
 	public void validateAccess(User currentUser, User ownerAdmin) {
 		User currentOwner = resolveOwnerAdmin(currentUser);
-		System.err.println(currentOwner.getId());
-		System.err.println(ownerAdmin.getId());
+		
 		if (!ownerAdmin.getId().equals(currentOwner.getId())) {
-			throw new BadRequestException("Bad request ");
+			throw new BadRequestException("Inavlid access");
 		}
 	}
 
@@ -121,12 +120,12 @@ public class AppCommon {
 		// =============================
 		// Super Admin
 		// =============================
-		if (isSuperAdmin(currentUser)) {
+		if (isSuperAdmin(currentUser)||isRootSuperAdmin(currentUser)) {
 
 			if (isSubUser(targetUser)) {
 				throw new BadRequestException("Super admin cannot manage admin users");
 			}
-			if (isSuperAdmin(targetUser)) {
+			if (isSuperAdmin(targetUser)&&!isRootSuperAdmin(currentUser)) {
 				throw new BadRequestException("Super admin cannot manage other super admin");
 			}
 			return;

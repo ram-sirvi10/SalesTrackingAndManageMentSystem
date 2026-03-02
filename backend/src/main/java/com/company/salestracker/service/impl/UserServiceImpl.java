@@ -35,7 +35,7 @@ public class UserServiceImpl implements UserService {
 	@Transactional
 	public UserResponse updateUser(String userId, UpdateUserRequest request) {
 
-	 User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
+		User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
 
 		if (!userId.equals(appCommon.currentLoginUser().getId())) {
@@ -51,8 +51,8 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void approveRequest(String userId) {
 
-		 User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
-					.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
+		User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
 
 		appCommon.validateUserManagementAccess(user);
 
@@ -69,8 +69,8 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void rejectRequest(String userId) {
 
-		 User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
-					.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
+		User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
 		appCommon.validateUserManagementAccess(user);
 
 		if (!UserStatus.PENDING.equals(user.getStatus())) {
@@ -79,21 +79,22 @@ public class UserServiceImpl implements UserService {
 
 		user.setStatus(UserStatus.REJECTED);
 		user.setUpdatedAt(LocalDateTime.now());
-
+		user.setIsDelete(true);
 		userRepo.save(user);
 	}
 
 	@Override
+
+    @Transactional
 	public void toggalStatus(String userId) {
 
-	User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
+		User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
 				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
 		User currentUser = appCommon.currentLoginUser();
 
 		if (currentUser.getId().equals(userId)) {
 			throw new BadRequestException("You cannot change your own status");
 		}
-
 		appCommon.validateUserManagementAccess(user);
 
 		if (UserStatus.ACTIVE.equals(user.getStatus())) {
@@ -123,8 +124,8 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void deleteUser(String userId) {
 
-		 User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
-					.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
+		User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
 //	 	if(isOwnerAdmin(user)) {
 //			throw new BadRequestException("Admin can not ");
 //		}
@@ -203,9 +204,30 @@ public class UserServiceImpl implements UserService {
 
 	}
 
-	
-	
-	
+	@Override
+	public UserResponse getUserByEmail(String email) {
+
+		User user = userRepo.findByEmail(email).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
+		if (!user.getStatus().equals(UserStatus.ACTIVE)) {
+			throw new ResourceNotFoundException("User is blocked");
+		}
+		return Mapper.toResponse(user);
+	}
+
+	@Override
+	public UserResponse getUserById(String userId) {
+
+		User user = userRepo.findById(userId).filter(u -> !Boolean.TRUE.equals(u.getIsDelete()))
+				.orElseThrow(() -> new ResourceNotFoundException(AppConstant.USER_NOT_FOUND));
+
+		if (!userId.equals(appCommon.currentLoginUser().getId())) {
+			appCommon.validateUserManagementAccess(user);
+		}
+
+		return Mapper.toResponse(user);
+	}
+
 //	@Override
 //	public PaginationResponse<?> getAllSuperAdmins(int pageNo, int pageSize) {
 //

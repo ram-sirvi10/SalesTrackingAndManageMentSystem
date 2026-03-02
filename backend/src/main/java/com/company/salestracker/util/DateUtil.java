@@ -19,5 +19,8 @@ public class DateUtil {
 	public static boolean isPastDate(LocalDate date) {
 		return date != null && date.isBefore(LocalDate.now());
 	}
+	public static boolean isEndDateAfterStartDate(LocalDate end,LocalDate start) {
+		return end.isAfter(start);
+	}
 
 }

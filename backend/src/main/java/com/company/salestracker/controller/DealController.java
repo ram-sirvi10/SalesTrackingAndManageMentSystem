@@ -38,7 +38,7 @@ public class DealController {
 	public ResponseEntity<ApiResponse<DealResponse>> createDeal(@Valid @RequestBody DealRequest request) {
 
 		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(ApiResponse.success("Lead created successfully", dealService.createDeal(request)));
+				.body(ApiResponse.success("Deal created successfully", dealService.createDeal(request)));
 	}
 
 	// ==============================
@@ -50,7 +50,7 @@ public class DealController {
 			@PathVariable String dealId) {
 
 		return ResponseEntity.status(HttpStatus.OK)
-				.body(ApiResponse.success("Lead created successfully", dealService.updateDeal(dealId, request)));
+				.body(ApiResponse.success("Deal created successfully", dealService.updateDeal(dealId, request)));
 	}
 
 	// ==============================
@@ -93,7 +93,7 @@ public class DealController {
 	@PreAuthorize("hasAuthority('GET_DEAL_BY_ID')")
 	public ResponseEntity<ApiResponse<?>> getLeadById(@PathVariable String dealId) {
 
-		return ResponseEntity.ok(ApiResponse.success("Lead fetched successfully", dealService.getById(dealId)));
+		return ResponseEntity.ok(ApiResponse.success("Deal fetched successfully", dealService.getById(dealId)));
 
 	}
 
