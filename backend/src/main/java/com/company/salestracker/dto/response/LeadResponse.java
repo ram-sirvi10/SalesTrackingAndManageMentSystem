@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 public class LeadResponse {
 
-	private String leadId;
+	private String id;
 
 	private String name;
 
@@ -27,4 +27,7 @@ public class LeadResponse {
 
 	private LocalDateTime createdAt;
 
+	private String createdByEmail;
+	
+	private String dealId;
 }

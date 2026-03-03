@@ -28,10 +28,9 @@ public interface UserService {
 
 	UserResponse updateUser(String userId, UpdateUserRequest request);
 
-	PaginationResponse<?> getAll(int pageNo, int pageSize);
-
 	PaginationResponse<?> getAllPendingRequest(int pageNo, int pageSize);
 
 	UserResponse getUserByEmail(String email);
+	PaginationResponse<?> getAll(int pageNo, int pageSize, String search);
 
 }

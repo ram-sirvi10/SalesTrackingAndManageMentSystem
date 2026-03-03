@@ -28,19 +28,17 @@ public class UserController {
 
 	private final UserService userService;
 
-	  @GetMapping("/me")
-		@PreAuthorize("isAuthenticated()")
-	    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(
-	            Authentication authentication) {
+	@GetMapping("/me")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(Authentication authentication) {
 
-	        String email = authentication.getName();
+		String email = authentication.getName();
 
-	        UserResponse user = userService.getUserByEmail(email);
+		UserResponse user = userService.getUserByEmail(email);
 
-	        return ResponseEntity.ok(
-	                ApiResponse.success("User fetched successfully", user)
-	        );
-	    }
+		return ResponseEntity.ok(ApiResponse.success("User fetched successfully", user));
+	}
+
 	// ==============================
 	// UPDATE USER
 	// ==============================
@@ -94,10 +92,10 @@ public class UserController {
 	@GetMapping
 	@PreAuthorize("hasAuthority('VIEW_ALL_USERS')")
 	public ResponseEntity<ApiResponse<PaginationResponse<?>>> getAllUsers(@RequestParam(defaultValue = "0") int pageNo,
-			@RequestParam(defaultValue = "10") int pageSize) {
+			@RequestParam(defaultValue = "10") int pageSize, @RequestParam(defaultValue = "") String search) {
 
 		return ResponseEntity
-				.ok(ApiResponse.success("Users fetched successfully", userService.getAll(pageNo, pageSize)));
+				.ok(ApiResponse.success("Users fetched successfully", userService.getAll(pageNo, pageSize, search)));
 	}
 
 	// ==============================
@@ -133,21 +131,14 @@ public class UserController {
 		return ResponseEntity.ok(ApiResponse.success("User status updated successfully"));
 	}
 
-	
 	// ==============================
 	// GET USER BY ID
 	// ==============================
 	@GetMapping("/{userId}")
 	@PreAuthorize("hasAuthority('VIEW_ALL_USERS') or #userId == authentication.principal.id")
-	public ResponseEntity<ApiResponse<UserResponse>> getUserById(
-	        @PathVariable String userId) {
+	public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable String userId) {
 
-	    return ResponseEntity.ok(
-	            ApiResponse.success(
-	                    "User fetched successfully",
-	                    userService.getUserById(userId)
-	            )
-	    );
+		return ResponseEntity.ok(ApiResponse.success("User fetched successfully", userService.getUserById(userId)));
 	}
 //	// ==============================
 //	// GET ALL SUPER ADMINS

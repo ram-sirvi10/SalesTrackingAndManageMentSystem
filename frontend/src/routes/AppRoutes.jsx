@@ -67,7 +67,8 @@ const AppRoutes = () => {
             <Route path="/leads" element={<LeadList />} />
             <Route path="/leads/add" element={<LeadForm />} />
             <Route path="/leads/:id/edit" element={<LeadForm />} />
-            <Route path="/leads/:id" element={<LeadDetails />} />
+            <Route path="/leads/:id/details" element={<LeadDetails />} />
+
             {/* DEALS */}
             <Route path="/deals" element={<DealList />} />
             <Route path="/deals/add" element={<DealForm />} />
@@ -76,8 +77,7 @@ const AppRoutes = () => {
             {/* SALES */}
             <Route path="/sales" element={<SalesList />} />
             <Route path="/sales/add" element={<SalesForm />} />
-            <Route path="/sales/:id/edit" element={<SalesForm />} />
-            <Route path="/sales/:id" element={<SalesDetails />} />
+            <Route path="/sales/:id/details" element={<SalesDetails />} />
             {/* TARGETS */}
             <Route path="/targets" element={<TargetList />} />
             <Route path="/targets/add" element={<TargetForm />} />

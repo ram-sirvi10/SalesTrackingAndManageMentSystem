@@ -77,9 +77,11 @@ public class Mapper {
 	public static LeadResponse toResponse(Lead lead) {
 		if (lead == null)
 			return null;
-		return LeadResponse.builder().leadId(lead.getId()).name(lead.getName()).email(lead.getEmail())
+		return LeadResponse.builder().id(lead.getId()).name(lead.getName()).email(lead.getEmail())
 				.phone(lead.getPhone()).assignedToId(lead.getAssignedto() != null ? lead.getAssignedto().getId() : null)
 				.assignedPersonEmail(lead.getAssignedto() != null ? lead.getAssignedto().getEmail() : null)
+				.dealId(lead.getDeal()!=null?lead.getDeal().getId():null)
+				.createdByEmail(lead.getCreatedBy().getEmail())
 				.status(lead.getStatus().name()).source(lead.getSource()).createdAt(lead.getCreatedAt()).build();
 	}
 
@@ -92,19 +94,23 @@ public class Mapper {
 
 	public static DealResponse toResponse(Deal deal) {
 
-		return DealResponse.builder().dealId(deal.getId()).lead(toResponse(deal.getLead()))
+		return DealResponse.builder().id(deal.getId()).leadEmail(deal.getLead().getEmail())
 				.assignedUserId(deal.getAssignedTo() != null ? deal.getAssignedTo().getId() : null)
 				.assignedUserEmail(deal.getAssignedTo() != null ? deal.getAssignedTo().getEmail() : null)
+				.createdByUserEmail(deal.getCreatedBy().getEmail())
+				.saleId(deal.getSale()!=null?deal.getSale().getId():null)
+				.leadId(deal.getLead().getId())
 				.dealStage(deal.getDealStage().name()).expectedAmount(deal.getExpectedAmount())
 				.closingDate(deal.getClosingDate()).createdAt(deal.getCreatedAt()).build();
 	}
 
 	public static SaleResponse toResponse(Sale sale) {
-		return SaleResponse.builder().saleId(sale.getId())
+		return SaleResponse.builder().id(sale.getId())
 				.dealId(sale.getDeal() != null ? sale.getDeal().getId() : null).saleAmount(sale.getSaleAmount())
 				.dealAssignedUser(sale.getDeal() != null && sale.getDeal().getAssignedTo() != null
 						? sale.getDeal().getAssignedTo().getEmail()
 						: null)
+				.customerName(sale.getDeal().getLead().getName())
 				.paymentStatus(sale.getPaymentStatus() != null ? sale.getPaymentStatus().name() : null)
 				.invoiceNumber(sale.getInvoiceNumber()).saleDate(sale.getSaleDate())
 				.createdByUserEmail(sale.getCreatedBy() != null ? sale.getCreatedBy().getEmail() : null).build();

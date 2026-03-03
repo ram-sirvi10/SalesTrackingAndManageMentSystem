@@ -58,7 +58,6 @@ const UserList = () => {
         error?.response?.data?.message ||
           "Something went wrong please try again letter",
       );
-    } finally {
     }
   };
 
@@ -75,7 +74,6 @@ const UserList = () => {
         error?.response?.data?.message ||
           "Something went wrong please try again letter",
       );
-    } finally {
     }
   };
 
@@ -92,7 +90,7 @@ const UserList = () => {
       );
     }
   };
-  console.log(users);
+
   return (
     <div className="bg-white p-6 rounded-xl shadow">
       <div className="flex justify-between mb-6">

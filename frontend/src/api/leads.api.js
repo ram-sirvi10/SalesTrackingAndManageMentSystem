@@ -9,7 +9,8 @@ export const updateLeadStatusApi = (data) =>
   axiosClient.patch(`/leads/status`, data);
 export const deleteLeadApi = (id) => axiosClient.delete(`/leads/${id}`);
 
-export const getAllApi = () => axiosClient.get("/leads");
+export const getAllApi = (pageNo = 0, pageSize = 10) =>
+  axiosClient.get(`/leads?pageNo=${pageNo}&pageSize=${pageSize}`);
 export const getAssignedLeadByUserApi = (id) =>
   axiosClient.get(`/leads/assigned/${id}`);
 export const getLeadByIdApi = (id) => axiosClient.get(`/leads/${id}`);

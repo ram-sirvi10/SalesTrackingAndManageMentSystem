@@ -10,7 +10,7 @@ import lombok.Getter;
 @Getter
 public class SaleResponse {
 
-	private String saleId;
+	private String id;
 	private String dealId;
 	private String dealAssignedUser;
 	private BigDecimal saleAmount;
@@ -18,4 +18,5 @@ public class SaleResponse {
 	private String invoiceNumber;
 	private LocalDate saleDate;
 	private String createdByUserEmail;
+	private String customerName;
 }

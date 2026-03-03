@@ -1,92 +1,98 @@
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import {
+  createLeadApi,
+  updateLeadApi,
+  getLeadByIdApi,
+} from "../../api/leads.api";
+import { useNavigate, useParams } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const LeadForm = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    source: "",
+  });
+
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (id) {
+      getLeadByIdApi(id).then((res) => {
+        setFormData(res.data.data);
+      });
+    }
+  }, [id]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async () => {
+    try {
+      if (id) {
+        await updateLeadApi(id, formData);
+        toast.success("Lead updated");
+      } else {
+        await createLeadApi(formData);
+        toast.success("Lead created");
+      }
+      navigate("/leads");
+    } catch (err) {
+      toast.error(err.response?.data?.message);
+    }
+  };
+
   return (
     <div className="bg-white p-6 rounded-xl shadow">
-      <h2 className="text-xl font-semibold mb-6">Add / Edit Lead</h2>
+      <h2 className="text-xl font-semibold mb-6">
+        {id ? "Edit Lead" : "Add Lead"}
+      </h2>
 
-      <div className="grid grid-cols-2 gap-6">
-        <div className="col-span-2">
-          <label className="block text-sm text-gray-600 mb-2">Lead Name</label>
-          <input
-            type="text"
-            placeholder="Enter lead name"
-            className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+      <input
+        name="name"
+        value={formData.name}
+        onChange={handleChange}
+        placeholder="Lead Name"
+        className="border p-2 w-full mb-3"
+      />
 
-        <div>
-          <label className="block text-sm text-gray-600 mb-2">Email</label>
-          <input
-            type="email"
-            placeholder="Enter email"
-            className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+      <input
+        name="email"
+        value={formData.email}
+        onChange={handleChange}
+        placeholder="Email"
+        className="border p-2 w-full mb-3"
+      />
 
-        <div>
-          <label className="block text-sm text-gray-600 mb-2">Phone</label>
-          <input
-            type="text"
-            placeholder="Enter phone number"
-            className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+      <input
+        name="phone"
+        value={formData.phone}
+        onChange={handleChange}
+        placeholder="Phone"
+        className="border p-2 w-full mb-3"
+      />
 
-        <div>
-          <label className="block text-sm text-gray-600 mb-2">
-            Lead Source
-          </label>
-          <select className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option>Website</option>
-            <option>Referral</option>
-            <option>LinkedIn</option>
-            <option>Cold Call</option>
-          </select>
-        </div>
+      <select
+        name="source"
+        value={formData.source}
+        onChange={handleChange}
+        className="border p-2 w-full mb-3"
+      >
+        <option value="">Select Source</option>
+        <option>Website</option>
+        <option>Referral</option>
+        <option>LinkedIn</option>
+      </select>
 
-        <div>
-          <label className="block text-sm text-gray-600 mb-2">Status</label>
-          <select className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option>NEW</option>
-            <option>CONTACTED</option>
-            <option>QUALIFIED</option>
-            <option>LOST</option>
-          </select>
-        </div>
-
-        <div className="col-span-2">
-          <label className="block text-sm text-gray-600 mb-2">
-            Assigned To
-          </label>
-          <select className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option>Raj Kumar</option>
-            <option>Priya Sharma</option>
-          </select>
-        </div>
-
-        <div className="col-span-2">
-          <label className="block text-sm text-gray-600 mb-2">Notes</label>
-          <textarea
-            rows="4"
-            placeholder="Enter notes"
-            className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          ></textarea>
-        </div>
-      </div>
-
-      <div className="mt-8 flex gap-4">
-        <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-          Save Lead
-        </button>
-
-        <Link
-          to="/leads"
-          className="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400"
-        >
-          Cancel
-        </Link>
-      </div>
+      <button
+        onClick={handleSubmit}
+        className="bg-blue-600 text-white px-6 py-2 rounded"
+      >
+        Save
+      </button>
     </div>
   );
 };

@@ -1,9 +1,12 @@
 import axiosClient from "./axiosClient";
 
 export const getCurrentUserApi = () => axiosClient.get("/users/me");
-export const getAllUsersAPi = () => axiosClient.get("/users");
-export const getUsersByRole = (id) => axiosClient.get(`/users/role/${id}`);
-export const getPendingUsersAPi = () => axiosClient.get("/users/pending");
+export const getAllUsersAPi = (pageNo = 0, pageSize = 10) =>
+  axiosClient.get(`/users?pageNo=${pageNo}&pageSize=${pageSize}`);
+export const getUsersByRole = (id, pageNo = 0, pageSize = 10) =>
+  axiosClient.get(`/users/role/${id}?pageNo=${pageNo}&pageSize=${pageSize}`);
+export const getPendingUsersAPi = (pageNo = 0, pageSize = 10) =>
+  axiosClient.get(`/users/pending?pageNo=${pageNo}&pageSize=${pageSize}`);
 export const getUserByIdApi = (id) => axiosClient.get(`/users/${id}`);
 export const updateAPi = (id, data) => axiosClient.patch(`/users/${id}`, data);
 

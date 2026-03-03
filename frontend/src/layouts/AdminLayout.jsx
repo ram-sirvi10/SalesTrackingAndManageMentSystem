@@ -3,7 +3,6 @@ import Sidebar from "../components/navigation/SideBar";
 import Topbar from "../components/navigation/Topbar";
 
 const AdminLayout = () => {
-  console.log("Protected Route");
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}

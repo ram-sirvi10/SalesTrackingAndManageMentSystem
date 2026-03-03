@@ -13,12 +13,15 @@ import lombok.Data;
 @Data
 public class DealResponse {
 
-	private String dealId;
-	private LeadResponse lead;
+	private String id;
+	private String leadEmail;
+	private String leadId;
 	private String assignedUserId;
 	private String assignedUserEmail;
 	private String dealStage;
 	private BigDecimal expectedAmount;
 	private LocalDate closingDate;
 	private LocalDateTime createdAt;
+	private String createdByUserEmail;
+	private String saleId;
 }

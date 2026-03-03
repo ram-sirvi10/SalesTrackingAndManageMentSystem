@@ -191,17 +191,28 @@ public class UserServiceImpl implements UserService {
 //	}
 
 	@Override
-	public PaginationResponse<?> getAll(int pageNo, int pageSize) {
-		User loginUser = appCommon.currentLoginUser();
-		Pageable pageable = PageRequest.of(pageNo, pageSize);
-		if (loginUser.getOwnerAdmin() != null) {
-			Page<User> users = userRepo.findByOwnerAdminAndStatusNotAndIsDeleteFalse(loginUser.getOwnerAdmin(),
-					UserStatus.PENDING, pageable);
-			return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
-		}
+	public PaginationResponse<?> getAll(int pageNo, int pageSize, String search) {
 
-		return Mapper.toPaginationResponse(userRepo.findAllSuperAndSelfAdmins(pageable).map(Mapper::toResponse));
+	    User loginUser = appCommon.currentLoginUser();
+	    Pageable pageable = PageRequest.of(pageNo, pageSize);
 
+	    Page<User> users;
+
+	    if (loginUser.getOwnerAdmin() != null) {
+
+	        users = userRepo.findUsersByOwnerAdminWithSearch(
+	                loginUser.getOwnerAdmin(),
+	                UserStatus.PENDING,
+	                search,loginUser.getId(),
+	                pageable
+	        );
+
+	    } else {
+
+	        users = userRepo.findSuperAdminsWithSearch(search,loginUser.getId() ,pageable);
+	    }
+
+	    return Mapper.toPaginationResponse(users.map(Mapper::toResponse));
 	}
 
 	@Override
