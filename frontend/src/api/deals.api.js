@@ -9,7 +9,8 @@ export const updateDealStatusApi = (data) =>
   axiosClient.patch(`/deals/stage`, data);
 export const deleteDealApi = (id) => axiosClient.delete(`/deals/${id}`);
 
-export const getAllApi = () => axiosClient.get("/deals");
-export const getAssignedDealByUserApi = (id) =>
-  axiosClient.get(`/deals/assigned/${id}`);
+export const getAllApi = (pageNo = 0, pageSize = 10) => 
+  axiosClient.get(`/deals?pageNo=${pageNo}&pageSize=${pageSize}`);
+export const getAssignedDealByUserApi = (id, pageNo = 0, pageSize = 10) =>
+  axiosClient.get(`/deals/assigned/${id}?pageNo=${pageNo}&pageSize=${pageSize}`);
 export const getDealByIdApi = (id) => axiosClient.get(`/deals/${id}`);

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { User, Mail, Phone, Lock } from "lucide-react";
 import {
   getCurrentUserApi,
   getUserByIdApi,
@@ -9,6 +10,9 @@ import { getRoles } from "../../api/roles.api";
 import { createUserApi } from "../../api/auth.api";
 import useAuth from "../../hooks/useAuth";
 import toast from "react-hot-toast";
+import Card from "../../components/common/Card";
+import Input from "../../components/common/Input";
+import Button from "../../components/common/Button";
 
 const UserForm = () => {
   const { id } = useParams();
@@ -159,106 +163,113 @@ const UserForm = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow max-w-4xl">
-      <h2 className="text-xl font-semibold mb-6">
-        {isAddMode
-          ? "Add User"
-          : isProfileMode
-            ? "Update Profile"
-            : "Edit User"}
-      </h2>
+    <div className="max-w-4xl">
+      <Card>
+        <h2 className="text-2xl font-bold text-secondary-900 mb-6">
+          {isAddMode
+            ? "Add User"
+            : isProfileMode
+              ? "Update Profile"
+              : "Edit User"}
+        </h2>
 
-      <div className="grid grid-cols-2 gap-6">
-        {/* Name */}
-        <div>
-          <label>Name</label>
-          <input
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Name */}
+          <Input
+            label="Name"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full border px-3 py-2 rounded-lg"
+            placeholder="Enter full name"
+            icon={User}
           />
-        </div>
 
-        {/* Email */}
-        {isAddMode && (
-          <div>
-            <label>Email</label>
-            <input
+          {/* Email */}
+          {isAddMode && (
+            <Input
+              label="Email"
               name="email"
+              type="email"
               value={formData.email}
               disabled={!isAddMode}
               onChange={handleChange}
-              className="w-full border px-3 py-2 rounded-lg bg-gray-100"
+              placeholder="Enter email address"
+              icon={Mail}
             />
-          </div>
-        )}
+          )}
 
-        {/* Phone */}
-        <div>
-          <label>Phone</label>
-          <input
+          {/* Phone */}
+          <Input
+            label="Phone"
             name="phone"
             value={formData.phone}
             onChange={handleChange}
-            className="w-full border px-3 py-2 rounded-lg"
+            placeholder="Enter phone number"
+            icon={Phone}
           />
-        </div>
 
-        {/* Role */}
-        {isAddMode && (
-          <div className="col-span-2">
-            <label className="block mb-2 font-medium">Roles</label>
-
-            <div className="flex flex-wrap gap-4">
-              {roles.map((role) => (
-                <label
-                  key={role.id}
-                  className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={formData.roles.includes(role.id)}
-                    onChange={() => handleRoleChange(role.id)}
-                  />
-                  {role.roleName}
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Password (Only Add Mode) */}
-        {isAddMode && (
-          <div className="col-span-2">
-            <label>Password</label>
-            <input
+          {/* Password (Only Add Mode) */}
+          {isAddMode && (
+            <Input
+              label="Password"
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full border px-3 py-2 rounded-lg"
+              placeholder="Enter password"
+              icon={Lock}
+              containerClassName="md:col-span-2"
             />
-          </div>
-        )}
-      </div>
+          )}
 
-      <div className="mt-8 flex gap-4">
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg"
-        >
-          {loading ? "Processing..." : isAddMode ? "Create User" : "Update"}
-        </button>
+          {/* Role */}
+          {isAddMode && (
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-secondary-700 mb-3">
+                Assign Roles
+              </label>
 
-        <button
-          onClick={() => navigate(-1)}
-          className="bg-gray-300 px-6 py-2 rounded-lg"
-        >
-          Cancel
-        </button>
-      </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {roles.map((role) => (
+                  <label
+                    key={role.id}
+                    className={`flex items-center justify-between px-4 py-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                      formData.roles.includes(role.id)
+                        ? "bg-primary-50 border-primary-500"
+                        : "bg-secondary-50 border-secondary-200 hover:border-secondary-300"
+                    }`}
+                  >
+                    <span className="text-sm font-medium text-secondary-900">
+                      {role.roleName}
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={formData.roles.includes(role.id)}
+                      onChange={() => handleRoleChange(role.id)}
+                      className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                    />
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-8 flex gap-4">
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+            loading={loading}
+            variant="primary"
+          >
+            {isAddMode ? "Create User" : "Update"}
+          </Button>
+
+          <Button onClick={() => navigate(-1)} variant="secondary">
+            Cancel
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 };

@@ -1,9 +1,13 @@
-import { Link } from "react-router-dom";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { Mail, DollarSign, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
 import { getDealByIdApi } from "../../api/deals.api";
 import { createSaleApi } from "../../api/sales.api";
+import Card from "../../components/common/Card";
+import Input from "../../components/common/Input";
+import Button from "../../components/common/Button";
+
 const SalesForm = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -40,7 +44,6 @@ const SalesForm = () => {
   };
 
   const handleSubmit = async () => {
-    console.log(formData);
     if (!formData.saleAmount || !formData.saleDate) {
       return toast.error("All fields are required");
     }
@@ -57,65 +60,55 @@ const SalesForm = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow">
-      <h2 className="text-xl font-semibold mb-6">Add Sale</h2>
+    <div className="max-w-3xl">
+      <Card>
+        <h2 className="text-2xl font-bold text-secondary-900 mb-6">Add Sale</h2>
 
-      <div className="grid grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm text-gray-600 mb-2">
-            Customer Email
-          </label>
-          <input
+        <div className="space-y-4">
+          <Input
+            label="Customer Email"
             type="text"
             value={customerEmail}
             disabled
-            placeholder="Enter customer name"
-            className="w-full border px-3 py-2 rounded-lg bg-gray-100"
+            placeholder="Customer email"
+            icon={Mail}
           />
-        </div>
 
-        <div>
-          <label className="block text-sm text-gray-600 mb-2">Amount</label>
-          <input
+          <Input
+            label="Sale Amount"
             type="number"
             name="saleAmount"
             value={formData.saleAmount}
             onChange={handleChange}
             placeholder="Enter amount"
-            className="w-full border px-3 py-2 rounded-lg"
+            icon={DollarSign}
           />
-        </div>
 
-        <div>
-          <label className="block text-sm text-gray-600 mb-2">
-            Payment Date
-          </label>
-          <input
+          <Input
+            label="Payment Date"
             type="date"
             name="saleDate"
             value={formData.saleDate}
             onChange={handleChange}
-            className="w-full border px-3 py-2 rounded-lg"
+            icon={Calendar}
           />
         </div>
-      </div>
 
-      <div className="mt-8 flex gap-4">
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-        >
-          {loading ? "Saving..." : "Save sale"}
-        </button>
+        <div className="mt-8 flex gap-4">
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+            loading={loading}
+            variant="primary"
+          >
+            Save Sale
+          </Button>
 
-        <button
-          onClick={() => navigate("/sales")}
-          className="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400"
-        >
-          Cancel
-        </button>
-      </div>
+          <Button onClick={() => navigate("/sales")} variant="secondary">
+            Cancel
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 };

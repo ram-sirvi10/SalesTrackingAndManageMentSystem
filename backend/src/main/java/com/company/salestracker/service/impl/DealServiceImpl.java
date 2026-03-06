@@ -200,7 +200,7 @@ public class DealServiceImpl implements DealService {
 
 		Pageable pageable = PageRequest.of(pageNo, pageSize);
 
-		Page<Deal> deals = dealRepo.findByCreatedByAndIsDeleteFalse(targetUser, pageable);
+		Page<Deal> deals = dealRepo.findByAssignedToAndIsDeleteFalse(targetUser, pageable);
 
 		return Mapper.toPaginationResponse(deals.map(Mapper::toResponse));
 	}

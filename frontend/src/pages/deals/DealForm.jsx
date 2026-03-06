@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import { DollarSign, Calendar, Mail, ArrowLeft } from "lucide-react";
 import {
   createDealApi,
   updateDealApi,
   getDealByIdApi,
 } from "../../api/deals.api";
 import { getLeadByIdApi } from "../../api/leads.api";
+import Card from "../../components/common/Card";
+import Button from "../../components/common/Button";
+import Input from "../../components/common/Input";
 
 const DealForm = () => {
   const navigate = useNavigate();
@@ -87,68 +91,75 @@ const DealForm = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow max-w-3xl mx-auto">
-      <h2 className="text-xl font-semibold mb-6">
-        {isEdit ? "Edit Deal" : "Create Deal"}
-      </h2>
+    <div className="max-w-3xl mx-auto space-y-6">
+      <Card>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">
+              {isEdit ? "Edit Deal" : "Create New Deal"}
+            </h2>
+            <p className="text-gray-600 mt-1">
+              {isEdit ? "Update deal information" : "Add a new deal to your pipeline"}
+            </p>
+          </div>
+          <button
+            onClick={() => navigate("/deals")}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+          >
+            <ArrowLeft size={20} />
+          </button>
+        </div>
 
-      <div className="grid grid-cols-2 gap-6">
-        <div className="col-span-2">
-          <label className="block text-sm text-gray-600 mb-2">Lead</label>
-          <input
+        <div className="space-y-6">
+          {/* Lead Name (Disabled) */}
+          <Input
+            label="Lead"
             type="text"
             value={leadName}
             disabled
-            className="w-full border px-3 py-2 rounded-lg bg-gray-100"
+            icon={Mail}
+            placeholder="Lead name"
           />
-        </div>
 
-        <div>
-          <label className="block text-sm text-gray-600 mb-2">
-            Expected Amount
-          </label>
-          <input
+          {/* Expected Amount */}
+          <Input
+            label="Expected Amount"
             type="number"
             name="expectedAmount"
             value={formData.expectedAmount}
             onChange={handleChange}
-            placeholder="Enter amount"
-            className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter expected amount"
+            icon={DollarSign}
           />
-        </div>
 
-        {/* Closing Date */}
-        <div>
-          <label className="block text-sm text-gray-600 mb-2">
-            Closing Date
-          </label>
-          <input
+          {/* Closing Date */}
+          <Input
+            label="Closing Date"
             type="date"
             name="closingDate"
             value={formData.closingDate}
             onChange={handleChange}
-            className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+            icon={Calendar}
           />
         </div>
-      </div>
 
-      {/* Buttons */}
-      <div className="mt-8 flex gap-4">
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-        >
-          {loading ? "Saving..." : "Save Deal"}
-        </button>
-
-        <button
-          onClick={() => navigate("/deals")}
-          className="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400"
-        >
-          Cancel
-        </button>
-      </div>
+        {/* Action Buttons */}
+        <div className="flex gap-4 mt-8 pt-6 border-t border-gray-200">
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+            loading={loading}
+          >
+            {loading ? "Saving..." : isEdit ? "Update Deal" : "Create Deal"}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/deals")}
+          >
+            Cancel
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 };

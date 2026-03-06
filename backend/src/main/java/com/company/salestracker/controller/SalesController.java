@@ -93,7 +93,7 @@ public class SalesController {
 	@GetMapping("/summary/monthly")
 	@PreAuthorize("hasAuthority('VIEW_SALES_SUMMARY')")
 	public ResponseEntity<ApiResponse<?>> getMonthlySummary(@RequestParam int year) {
-
+System.err.println(year);
 		return ResponseEntity.ok(ApiResponse.success("Monthly sales summary fetched successfully",
 				salesService.getMonthlySummary(year)));
 	}

@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
 import AuthLayout from "../layouts/AuthLayout";
 
-import Dashboard from "../pages/dashboard/Dashboard";
+import Dashboard from "../pages/dashboard/dashboard";
 import UserList from "../pages/users/UserList";
 import UserForm from "../pages/users/UserForm";
 import UserDetails from "../pages/users/UserDetails";
@@ -34,6 +34,8 @@ import ForgotPassword from "../pages/auth/ForgotPassword";
 import ResetPassword from "../pages/auth/ResetPassword";
 import ProtectedRoute from "./ProtectedRoute";
 import SuperAdminBlockRoute from "./SuperAdminBlockRoute";
+import Reports from "../pages/reports/Reports";
+import TargetPerformance from "../pages/reports/TargetPerformance";
 
 const AppRoutes = () => {
   return (
@@ -79,12 +81,14 @@ const AppRoutes = () => {
             <Route path="/sales/add" element={<SalesForm />} />
             <Route path="/sales/:id/details" element={<SalesDetails />} />
             {/* TARGETS */}
-            <Route path="/targets" element={<TargetList />} />
-            <Route path="/targets/add" element={<TargetForm />} />
-            <Route path="/targets/:id/edit" element={<TargetForm />} />
-            <Route path="/targets/:id" element={<TargetDetails />} />
+           <Route path="/targets" element={<TargetList />} />
+<Route path="/targets/add" element={<TargetForm />} />
+<Route path="/targets/:id/edit" element={<TargetForm />} />
+<Route path="/targets/:id" element={<TargetDetails />} />
+<Route path="/reports/target-performance" element={<TargetPerformance />} />
             {/* REPORTS */}
-            <Route path="/reports" element={<SalesReports />} />
+            <Route path="/sales-report" element={<SalesReports />} />
+              <Route path="/reports" element={<Reports />} />
           </Route>
         </Route>
       </Route>

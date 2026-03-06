@@ -93,7 +93,7 @@ public class UserController {
 	@PreAuthorize("hasAuthority('VIEW_ALL_USERS')")
 	public ResponseEntity<ApiResponse<PaginationResponse<?>>> getAllUsers(@RequestParam(defaultValue = "0") int pageNo,
 			@RequestParam(defaultValue = "10") int pageSize, @RequestParam(defaultValue = "") String search) {
-
+if(pageSize>100)pageSize=100;
 		return ResponseEntity
 				.ok(ApiResponse.success("Users fetched successfully", userService.getAll(pageNo, pageSize, search)));
 	}

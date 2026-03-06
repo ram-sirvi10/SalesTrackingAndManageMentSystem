@@ -266,13 +266,28 @@ public class TargetServiceImpl implements TargetService {
 
 	private void validateMonthYear(TargetRequest request) {
 
-		if (request.getTargetMonth() < 1 || request.getTargetMonth() > 12) {
-			throw new BadRequestException("Invalid month value");
-		}
+	    if (request.getTargetMonth() < 1 || request.getTargetMonth() > 12) {
+	        throw new BadRequestException("Invalid month value");
+	    }
 
-		if (request.getTargetYear() < 2000 || request.getTargetYear() > LocalDate.now().getYear()) {
-			throw new BadRequestException("Invalid year value");
-		}
+	    LocalDate now = LocalDate.now();
+
+	    int currentMonth = now.getMonthValue();
+	    int currentYear = now.getYear();
+
+	    int targetMonth = request.getTargetMonth();
+	    int targetYear = request.getTargetYear();
+
+	
+	    if (targetYear < currentYear) {
+	        throw new BadRequestException("Target must be for a future month");
+	    }
+
+	
+	    if (targetYear == currentYear && targetMonth <= currentMonth) {
+	        throw new BadRequestException("Target must be for a future month");
+	    }
+
 	}
 
 	private Target getActiveTarget(String id) {

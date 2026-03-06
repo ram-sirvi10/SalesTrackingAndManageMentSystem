@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { User, Mail, Phone, Globe } from "lucide-react";
 import {
   createLeadApi,
   updateLeadApi,
@@ -6,6 +7,10 @@ import {
 } from "../../api/leads.api";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import Card from "../../components/common/Card";
+import Input from "../../components/common/Input";
+import Select from "../../components/common/Select";
+import Button from "../../components/common/Button";
 
 const LeadForm = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +22,7 @@ const LeadForm = () => {
 
   const { id } = useParams();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -32,6 +38,7 @@ const LeadForm = () => {
 
   const handleSubmit = async () => {
     try {
+      setLoading(true);
       if (id) {
         await updateLeadApi(id, formData);
         toast.success("Lead updated");
@@ -42,57 +49,76 @@ const LeadForm = () => {
       navigate("/leads");
     } catch (err) {
       toast.error(err.response?.data?.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow">
-      <h2 className="text-xl font-semibold mb-6">
-        {id ? "Edit Lead" : "Add Lead"}
-      </h2>
+    <div className="max-w-3xl">
+      <Card>
+        <h2 className="text-2xl font-bold text-secondary-900 mb-6">
+          {id ? "Edit Lead" : "Add Lead"}
+        </h2>
 
-      <input
-        name="name"
-        value={formData.name}
-        onChange={handleChange}
-        placeholder="Lead Name"
-        className="border p-2 w-full mb-3"
-      />
+        <div className="space-y-4">
+          <Input
+            label="Lead Name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Enter lead name"
+            icon={User}
+          />
 
-      <input
-        name="email"
-        value={formData.email}
-        onChange={handleChange}
-        placeholder="Email"
-        className="border p-2 w-full mb-3"
-      />
+          <Input
+            label="Email"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Enter email address"
+            icon={Mail}
+          />
 
-      <input
-        name="phone"
-        value={formData.phone}
-        onChange={handleChange}
-        placeholder="Phone"
-        className="border p-2 w-full mb-3"
-      />
+          <Input
+            label="Phone"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="Enter phone number"
+            icon={Phone}
+          />
 
-      <select
-        name="source"
-        value={formData.source}
-        onChange={handleChange}
-        className="border p-2 w-full mb-3"
-      >
-        <option value="">Select Source</option>
-        <option>Website</option>
-        <option>Referral</option>
-        <option>LinkedIn</option>
-      </select>
+          <Select
+            label="Source"
+            name="source"
+            value={formData.source}
+            onChange={handleChange}
+            placeholder="Select source"
+            options={[
+              { value: "Website", label: "Website" },
+              { value: "Referral", label: "Referral" },
+              { value: "LinkedIn", label: "LinkedIn" },
+            ]}
+          />
+        </div>
 
-      <button
-        onClick={handleSubmit}
-        className="bg-blue-600 text-white px-6 py-2 rounded"
-      >
-        Save
-      </button>
+        <div className="mt-8 flex gap-4">
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+            loading={loading}
+            variant="primary"
+          >
+            Save
+          </Button>
+
+          <Button onClick={() => navigate("/leads")} variant="secondary">
+            Cancel
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 };

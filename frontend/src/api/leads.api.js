@@ -11,6 +11,6 @@ export const deleteLeadApi = (id) => axiosClient.delete(`/leads/${id}`);
 
 export const getAllApi = (pageNo = 0, pageSize = 10) =>
   axiosClient.get(`/leads?pageNo=${pageNo}&pageSize=${pageSize}`);
-export const getAssignedLeadByUserApi = (id) =>
-  axiosClient.get(`/leads/assigned/${id}`);
+export const getAssignedLeadByUserApi = (id, pageNo = 0, pageSize = 10) =>
+  axiosClient.get(`/leads/assigned/${id}?pageNo=${pageNo}&pageSize=${pageSize}`);
 export const getLeadByIdApi = (id) => axiosClient.get(`/leads/${id}`);

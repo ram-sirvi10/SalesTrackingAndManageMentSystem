@@ -1,8 +1,10 @@
 import axiosClient from "./axiosClient";
 
 export const getCurrentUserApi = () => axiosClient.get("/users/me");
-export const getAllUsersAPi = (pageNo = 0, pageSize = 10) =>
-  axiosClient.get(`/users?pageNo=${pageNo}&pageSize=${pageSize}`);
+export const getAllUsersAPi = (pageNo = 0, pageSize = 10, search = "") =>
+  axiosClient.get(
+    `/users?pageNo=${pageNo}&pageSize=${pageSize}&search=${search}`,
+  );
 export const getUsersByRole = (id, pageNo = 0, pageSize = 10) =>
   axiosClient.get(`/users/role/${id}?pageNo=${pageNo}&pageSize=${pageSize}`);
 export const getPendingUsersAPi = (pageNo = 0, pageSize = 10) =>

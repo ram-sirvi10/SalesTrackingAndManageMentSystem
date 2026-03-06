@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { Edit, ArrowLeft, Mail, Phone, Shield } from "lucide-react";
 import { getUserByIdApi } from "../../api/users.api";
 import { getRoles, assignRoleApi, removeRoleApi } from "../../api/roles.api";
 import toast from "react-hot-toast";
 import Loader from "../../components/common/Loader";
 import useAuth from "../../hooks/useAuth";
+import Card from "../../components/common/Card";
+import Badge from "../../components/common/Badge";
+import Button from "../../components/common/Button";
 
 const UserDetails = () => {
   const { id } = useParams();
@@ -84,105 +88,122 @@ const UserDetails = () => {
     }
   };
 
-  if (!user) return <Loader />;
+  if (!user) return <Loader fullScreen />;
 
   return (
-    <div className="bg-white p-8 rounded-2xl shadow-lg max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-2xl font-semibold">User Details</h2>
+    <div className="max-w-5xl space-y-6">
+      <Card>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-secondary-900">User Details</h2>
+            <p className="text-secondary-600 mt-1">View and manage user information</p>
+          </div>
 
-        <Link
-          to={`/users/${id}/edit`}
-          className="bg-blue-600 text-white px-5 py-2 rounded-xl hover:bg-blue-700 transition"
-        >
-          Edit User
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-2 gap-8 text-sm mb-10">
-        <div>
-          <p className="text-gray-500 mb-1">Full Name</p>
-          <p className="font-medium text-lg">{user.name}</p>
+        
         </div>
 
-        <div>
-          <p className="text-gray-500 mb-1">Email</p>
-          <p className="font-medium text-lg">{user.email}</p>
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
+              <Mail size={20} className="text-primary-600" />
+            </div>
+            <div>
+              <p className="text-sm text-secondary-500 mb-1">Full Name</p>
+              <p className="font-semibold text-lg text-secondary-900">{user.name}</p>
+            </div>
+          </div>
 
-        <div>
-          <p className="text-gray-500 mb-1">Phone</p>
-          <p className="font-medium text-lg">{user.phone || "-"}</p>
-        </div>
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+              <Mail size={20} className="text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm text-secondary-500 mb-1">Email</p>
+              <p className="font-semibold text-lg text-secondary-900">{user.email}</p>
+            </div>
+          </div>
 
-        <div>
-          <p className="text-gray-500 mb-1">Status</p>
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-medium ${
-              user.status === "ACTIVE"
-                ? "bg-green-100 text-green-600"
-                : "bg-red-100 text-red-600"
-            }`}
-          >
-            {user.status}
-          </span>
-        </div>
-      </div>
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+              <Phone size={20} className="text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm text-secondary-500 mb-1">Phone</p>
+              <p className="font-semibold text-lg text-secondary-900">{user.phone || "-"}</p>
+            </div>
+          </div>
 
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-3">Assigned Roles</h3>
-
-        <div className="flex flex-wrap gap-3">
-          {user.roles.map((roleName) => (
-            <span
-              key={roleName}
-              className="bg-blue-100 text-blue-600 px-4 py-1 rounded-full text-sm font-medium"
-            >
-              {roleName}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {!isOwnProfile && (
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Manage Roles</h3>
-
-          <div className="grid grid-cols-3 gap-4">
-            {allRoles.map((role) => {
-              const hasRole = user.roles.includes(role.roleName);
-
-              return (
-                <label
-                  key={role.id}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl border cursor-pointer transition
-                  ${
-                    hasRole
-                      ? "bg-blue-50 border-blue-300"
-                      : "bg-gray-50 border-gray-200"
-                  }`}
-                >
-                  <span className="font-medium text-sm">{role.roleName}</span>
-
-                  <input
-                    type="checkbox"
-                    checked={hasRole}
-                    disabled={loadingRole === role.id}
-                    onChange={() => handleToggleRole(role)}
-                    className="w-4 h-4"
-                  />
-                </label>
-              );
-            })}
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0">
+              <Shield size={20} className="text-yellow-600" />
+            </div>
+            <div>
+              <p className="text-sm text-secondary-500 mb-1">Status</p>
+              <Badge
+                variant={user.status === "ACTIVE" ? "success" : "danger"}
+                size="md"
+              >
+                {user.status}
+              </Badge>
+            </div>
           </div>
         </div>
-      )}
-      {/* Back */}
-      <div className="mt-10">
-        <Link to="/users" className="text-blue-600 hover:underline text-sm">
-          ← Back to Users
-        </Link>
-      </div>
+
+        <div className="border-t border-secondary-200 pt-6 mb-6">
+          <h3 className="text-lg font-semibold text-secondary-900 mb-4">Assigned Roles</h3>
+
+          <div className="flex flex-wrap gap-3">
+            {user.roles.map((roleName) => (
+              <Badge key={roleName} variant="primary" size="md">
+                {roleName}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {!isOwnProfile && (
+          <div className="border-t border-secondary-200 pt-6">
+            <h3 className="text-lg font-semibold text-secondary-900 mb-4">Manage Roles</h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {allRoles.map((role) => {
+                const hasRole = user.roles.includes(role.roleName);
+
+                return (
+                  <label
+                    key={role.id}
+                    className={`flex items-center justify-between px-4 py-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                      hasRole
+                        ? "bg-primary-50 border-primary-500"
+                        : "bg-secondary-50 border-secondary-200 hover:border-secondary-300"
+                    }`}
+                  >
+                    <span className="font-medium text-sm text-secondary-900">{role.roleName}</span>
+
+                    <input
+                      type="checkbox"
+                      checked={hasRole}
+                      disabled={loadingRole === role.id}
+                      onChange={() => handleToggleRole(role)}
+                      className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                    />
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-8 pt-6 border-t border-secondary-200">
+         <button
+  onClick={() => navigate(-1)}
+  className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium transition-colors"
+>
+  <ArrowLeft size={18} />
+  Go Back
+</button>
+        </div>
+      </Card>
     </div>
   );
 };

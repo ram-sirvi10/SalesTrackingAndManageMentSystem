@@ -21,7 +21,7 @@ public interface DealRepository extends JpaRepository<Deal, String> {
 
 	Page<Deal> findByOwnerAdminAndIsDeleteFalse(User ownerAdmin, Pageable pageable);
 
-	Page<Deal> findByCreatedByAndIsDeleteFalse(User user, Pageable pageable);
+	Page<Deal> findByAssignedToAndIsDeleteFalse(User user, Pageable pageable);
 	
 	boolean existsByLeadAndIsDeleteFalse(Lead lead);
 

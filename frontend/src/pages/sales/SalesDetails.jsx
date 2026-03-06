@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { FileText, User, DollarSign, Calendar, CreditCard, ArrowLeft, TrendingUp } from "lucide-react";
 import { getSaleByIdApi, updatePaymentStatusApi } from "../../api/sales.api";
 import toast from "react-hot-toast";
 import Loader from "../../components/common/Loader";
+import Card from "../../components/common/Card";
+import Badge from "../../components/common/Badge";
+
 const SalesDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [sale, setSale] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  console.log(id);
 
   const fetchSale = async () => {
     try {
@@ -33,11 +35,9 @@ const SalesDetails = () => {
         saleId: sale.id,
         paymentStatus,
       });
-      toast.success("Satus updated successfully");
+      toast.success("Status updated successfully");
       fetchSale();
     } catch (err) {
-      console.log(err);
-
       toast.error(err.response?.data?.message || "Invalid Status transition");
     }
   };
@@ -50,77 +50,117 @@ const SalesDetails = () => {
         return [];
     }
   };
-  const getStageColor = (stage) => {
-    const colors = {
-      PENDING: "text-yellow-600",
-      SUCCESSFUL: "text-green-600",
-      FAILED: "text-red-600",
+  
+  const getStageVariant = (stage) => {
+    const variants = {
+      PENDING: "warning",
+      SUCCESSFUL: "success",
+      FAILED: "danger",
     };
-    return colors[stage] || "text-gray-600";
+    return variants[stage] || "default";
   };
 
-  if (loading) return <Loader />;
+  if (loading) return <Loader fullScreen />;
   if (!sale) return null;
+  
   return (
-    <div className="bg-white p-6 rounded-xl shadow">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Sale Details</h2>
-      </div>
-
-      <div className="grid grid-cols-2 gap-6 text-sm">
-        <div>
-          <p className="text-gray-500">Invoice Number</p>
-          <p className="font-medium">{sale.invoiceNumber}</p>
+    <div className="max-w-5xl space-y-6">
+      <Card>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-secondary-900">Sale Details</h2>
+            <p className="text-secondary-600 mt-1">View and manage sale information</p>
+          </div>
         </div>
 
-        <div>
-          <p className="text-gray-500">Customer</p>
-          <p className="font-medium">{sale.customerName}</p>
-        </div>
-
-        <div>
-          <p className="text-gray-500">Amount</p>
-          <p className="font-medium">
-            ₹{Number(sale.saleAmount).toLocaleString()}
-          </p>
-        </div>
-
-        <div>
-          <p className="text-gray-500">Status</p>
-          <p className={`font-semibold ${getStageColor(sale.paymentStatus)}`}>
-            {sale.paymentStatus}
-          </p>
-          {getAllowedNextStages(sale.paymentStatus).length > 0 && (
-            <div className="mt-2 flex gap-2 flex-wrap">
-              {getAllowedNextStages(sale.paymentStatus).map((stage) => (
-                <button
-                  key={stage}
-                  onClick={() => handleStatusChange(stage)}
-                  className="px-3 py-1 text-xs bg-gray-200 rounded-full hover:bg-gray-300"
-                >
-                  Move to {stage}
-                </button>
-              ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
+              <FileText size={20} className="text-primary-600" />
             </div>
-          )}
+            <div>
+              <p className="text-sm text-secondary-500 mb-1">Invoice Number</p>
+              <p className="font-semibold text-lg text-secondary-900">{sale.invoiceNumber}</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+              <User size={20} className="text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm text-secondary-500 mb-1">Customer</p>
+              <p className="font-semibold text-lg text-secondary-900">{sale.customerName}</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0">
+              <DollarSign size={20} className="text-yellow-600" />
+            </div>
+            <div>
+              <p className="text-sm text-secondary-500 mb-1">Amount</p>
+              <p className="font-semibold text-lg text-secondary-900">
+                ₹{Number(sale.saleAmount).toLocaleString()}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+              <TrendingUp size={20} className="text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm text-secondary-500 mb-1">Payment Status</p>
+              <div className="space-y-2">
+                <Badge variant={getStageVariant(sale.paymentStatus)} size="md">
+                  {sale.paymentStatus}
+                </Badge>
+                {getAllowedNextStages(sale.paymentStatus).length > 0 && (
+                  <div className="flex gap-2 flex-wrap">
+                    {getAllowedNextStages(sale.paymentStatus).map((stage) => (
+                      <button
+                        key={stage}
+                        onClick={() => handleStatusChange(stage)}
+                        className="px-3 py-1 text-xs bg-secondary-100 text-secondary-700 rounded-full hover:bg-secondary-200 transition-colors font-medium"
+                      >
+                        Move to {stage}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+              <Calendar size={20} className="text-purple-600" />
+            </div>
+            <div>
+              <p className="text-sm text-secondary-500 mb-1">Payment Date</p>
+              <p className="font-semibold text-lg text-secondary-900">{sale.saleDate}</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-pink-100 flex items-center justify-center flex-shrink-0">
+              <User size={20} className="text-pink-600" />
+            </div>
+            <div>
+              <p className="text-sm text-secondary-500 mb-1">Created By</p>
+              <p className="font-semibold text-lg text-secondary-900">{sale.createdByUserEmail}</p>
+            </div>
+          </div>
         </div>
 
-        <div>
-          <p className="text-gray-500">Payment Date</p>
-          <p className="font-medium">20 March 2026</p>
+        <div className="mt-8 pt-6 border-t border-secondary-200">
+          <Link to="/sales" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium transition-colors">
+            <ArrowLeft size={18} />
+            Back to Sales
+          </Link>
         </div>
-
-        <div>
-          <p className="text-gray-500">Created By</p>
-          <p className="font-medium">Raj Kumar</p>
-        </div>
-      </div>
-
-      <div className="mt-8">
-        <Link to="/sales" className="text-blue-600 hover:underline">
-          ← Back to Sales
-        </Link>
-      </div>
+      </Card>
     </div>
   );
 };

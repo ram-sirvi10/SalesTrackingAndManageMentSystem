@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
 import { forgotPasswordApi, verifyOtpApi } from "../../api/auth.api";
 import { validateEmail } from "../../utils/validation.util";
-import { email } from "zod";
+import Input from "../../components/common/Input";
+import Button from "../../components/common/Button";
+
 const ForgotPassword = () => {
   const navigate = useNavigate();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -137,48 +140,70 @@ const ForgotPassword = () => {
   };
 
   return (
-    <>
-      <h2 className="text-2xl font-semibold text-center mb-2">
-        Forgot Password
-      </h2>
-
-      <p className="text-sm text-gray-500 text-center mb-6">
-        Enter your email and verify OTP
-      </p>
+    <div className="bg-white p-8 rounded-2xl shadow-soft">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+          Forgot Password
+        </h2>
+        <p className="text-gray-600">
+          Enter your email and verify OTP to reset password
+        </p>
+      </div>
 
       <div className="space-y-6">
+        {/* Success Message */}
+        {success && (
+          <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+            <CheckCircle size={20} />
+            <span>{success}</span>
+          </div>
+        )}
+
+        {/* Error Messages */}
+        {(emailError || (typeof error === "string" && error)) && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            {emailError || error}
+          </div>
+        )}
+
+        {/* Email Input Section */}
         <div>
-          <label className="block text-sm text-gray-600 mb-2">
-            Registered Email
-          </label>
-          <input
-            value={data?.email}
-            onChange={handleChange}
+          <Input
+            label="Registered Email"
             type="email"
             name="email"
-            className="w-full border px-3 py-2 rounded-lg"
+            value={data?.email}
+            onChange={handleChange}
+            placeholder="Enter your email address"
+            icon={Mail}
             disabled={isOtpSend}
+            error={error?.email}
           />
-          {emailError && <p style={{ color: "red" }}>{emailError}</p>}
-          {error?.email && <p style={{ color: "red" }}>{error.email}</p>}
-          {success && (
-            <p style={{ color: "green", marginBottom: "10px" }}>{success}</p>
-          )}
-          {typeof error === "string" && <p style={{ color: "red" }}>{error}</p>}
-          <button
-            disabled={loading || isOtpSend}
+
+          <Button
             onClick={handleSubmit}
-            className="w-full mt-3 bg-blue-600 text-white py-2 rounded-lg"
+            disabled={loading || isOtpSend}
+            loading={loading}
+            className="w-full mt-4"
           >
-            {loading ? "Otp sending..." : "Send OTP"}
-          </button>
+            {loading ? "Sending OTP..." : "Send OTP"}
+          </Button>
         </div>
 
+        {/* OTP Verification Section */}
         {isOtpSend && (
-          <div className="border-t pt-6">
-            <p className="text-center text-sm mb-3">Enter 6-Digit OTP</p>
+          <div className="border-t border-gray-200 pt-6 space-y-4">
+            <div className="text-center">
+              <p className="text-sm font-medium text-gray-700 mb-4">
+                Enter 6-Digit OTP
+              </p>
+              <p className="text-xs text-gray-500 mb-4">
+                We've sent a verification code to your email
+              </p>
+            </div>
 
-            <div className="flex justify-between mb-4">
+            {/* OTP Input Boxes */}
+            <div className="flex justify-center gap-2 mb-6">
               {otp.map((digit, i) => (
                 <input
                   key={i}
@@ -186,39 +211,52 @@ const ForgotPassword = () => {
                   value={digit}
                   maxLength="1"
                   onChange={(e) => handleOtpChange(e.target.value, i)}
-                  className="w-10 h-10 border rounded-lg text-center text-lg"
+                  className="w-12 h-12 border-2 border-gray-300 rounded-lg text-center text-lg font-semibold focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all"
                 />
               ))}
             </div>
 
-            <button
+            <Button
               onClick={handleVerifyOtp}
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg"
+              loading={loading}
+              className="w-full"
+              variant="success"
             >
               {loading ? "Verifying..." : "Verify OTP"}
-            </button>
+            </Button>
+
+            {/* Resend OTP Timer */}
+            <div className="text-center">
+              {isResendDisabled ? (
+                <p className="text-sm text-gray-500">
+                  Resend OTP in {Math.floor(timer / 60)}:
+                  {timer % 60 < 10 ? `0${timer % 60}` : timer % 60}
+                </p>
+              ) : (
+                <button
+                  onClick={handleResendOtp}
+                  className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Resend OTP
+                </button>
+              )}
+            </div>
           </div>
         )}
-        <div className="text-center mt-3">
-          {isResendDisabled ? (
-            <p className="text-sm text-gray-500">
-              Resend OTP in {Math.floor(timer / 60)}:
-              {timer % 60 < 10 ? `0${timer % 60}` : timer % 60}
-            </p>
-          ) : (
-            <button onClick={handleResendOtp} className="text-blue-600 text-sm">
-              Resend OTP
-            </button>
-          )}
-        </div>
-        <div className="text-center">
-          <Link to="/login" className="text-sm text-blue-600">
+
+        {/* Back to Login Link */}
+        <div className="text-center pt-4">
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium"
+          >
+            <ArrowLeft size={16} />
             Back to Login
           </Link>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

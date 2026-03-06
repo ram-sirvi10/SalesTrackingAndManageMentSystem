@@ -1,7 +1,11 @@
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Mail, Lock, CheckCircle } from "lucide-react";
 import useAuth from "../../hooks/useAuth";
 import { validateLogin } from "../../utils/validation.util";
+import Input from "../../components/common/Input";
+import Button from "../../components/common/Button";
+
 const Login = () => {
   const { login, error } = useAuth();
   const [success, setSuccess] = useState(null);
@@ -49,71 +53,75 @@ const Login = () => {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-lg"
-    >
-      <h2 className="text-2xl font-semibold text-center mb-2">Welcome Back</h2>
+    <div className="bg-white p-8 rounded-2xl shadow-soft">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">Welcome Back</h2>
+        <p className="text-gray-600">
+          Please login to your account
+        </p>
+      </div>
 
-      <p className="text-sm text-gray-500 text-center mb-6">
-        Please login to your account
-      </p>
-      {success && (
-        <p style={{ color: "green", marginBottom: "10px" }}>{success}</p>
-      )}
-      {typeof error === "string" && <p style={{ color: "red" }}>{error}</p>}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Success Message */}
+        {success && (
+          <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+            <CheckCircle size={20} />
+            <span>{success}</span>
+          </div>
+        )}
 
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm text-gray-600 mb-1">Email</label>
-          <input
-            type="email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder="Enter your email"
-            className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
-          {error?.email && <p style={{ color: "red" }}>{error.email}</p>}
-          {formError?.email && (
-            <p style={{ color: "red" }}>{formError.email}</p>
-          )}
-        </div>
+        {/* Error Message */}
+        {typeof error === "string" && error && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            {error}
+          </div>
+        )}
 
-        <div>
-          <label className="block text-sm text-gray-600 mb-1">Password</label>
-          <input
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="Enter your password"
-            className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
-          {error?.password && <p style={{ color: "red" }}>{error.password}</p>}
-          {formError?.password && (
-            <p style={{ color: "red" }}>{formError.password}</p>
-          )}
-        </div>
+        {/* Email Input */}
+        <Input
+          label="Email"
+          type="email"
+          name="email"
+          value={form.email}
+          onChange={handleChange}
+          placeholder="Enter your email"
+          icon={Mail}
+          error={error?.email || formError?.email}
+        />
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
+        {/* Password Input */}
+        <Input
+          label="Password"
+          type="password"
+          name="password"
+          value={form.password}
+          onChange={handleChange}
+          placeholder="Enter your password"
+          icon={Lock}
+          error={error?.password || formError?.password}
+        />
 
+        {/* Forgot Password Link */}
         <div className="text-right">
           <Link
             to="/forgot-password"
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-primary-600 hover:text-primary-700 font-medium"
           >
             Forgot Password?
           </Link>
         </div>
-      </div>
-    </form>
+
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          disabled={loading}
+          loading={loading}
+          className="w-full"
+        >
+          {loading ? "Logging in..." : "Login"}
+        </Button>
+      </form>
+    </div>
   );
 };
 
