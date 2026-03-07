@@ -5,14 +5,15 @@ import { getRoleById } from "../../api/roles.api";
 import toast from "react-hot-toast";
 import Loader from "../../components/common/Loader";
 import Card from "../../components/common/Card";
-import Badge from "../../components/common/Badge";
+import usePermission from "../../hooks/usePermission";
 import Button from "../../components/common/Button";
+import { PERMISSIONS } from "../../config/permissions.config";
 
 const RoleDetails = () => {
   const { id } = useParams();
   const [role, setRole] = useState(null);
   const navigate = useNavigate();
-  
+  const{hasPermission} = usePermission();
   useEffect(() => {
     const fetchRole = async () => {
       try {
@@ -36,11 +37,11 @@ const RoleDetails = () => {
             <h2 className="text-2xl font-bold text-secondary-900">Role Details</h2>
             <p className="text-secondary-600 mt-1">View role information and permissions</p>
           </div>
-          <Link to={`/roles/${id}/edit`}>
+         {hasPermission(PERMISSIONS.ROLE_UPDATE)&&( <Link to={`/roles/${id}/edit`}>
             <Button variant="primary" icon={Edit}>
               Edit Role
             </Button>
-          </Link>
+          </Link>)}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

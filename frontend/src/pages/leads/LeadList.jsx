@@ -17,9 +17,11 @@ import Button from "../../components/common/Button";
 import Badge from "../../components/common/Badge";
 import EmptyState from "../../components/common/EmptyState";
 import Pagination from "../../components/common/Pagination";
+import { PERMISSIONS } from "../../config/permissions.config";
 
 const LeadList = () => {
   const [leads, setLeads] = useState([]);
+  const [leadViewType, setLeadViewType] = useState("MY"); 
   const [loading, setLoading] = useState(true);
   const { hasPermission } = usePermission();
   const { user } = useAuth();
@@ -46,16 +48,16 @@ const LeadList = () => {
 
       if (selectedUser) {
         res = await getAssignedLeadByUserApi(selectedUser.id, page, size);
-      } else if (hasPermission("VIEW_ALL_LEADS")) {
-        res = await getAllApi(page, size);
+      } else if (leadViewType === "ALL" && hasPermission(PERMISSIONS.LEAD_VIEW_ALL)) {
+      res = await getAllApi(page, size);
       } else {
-        res = await getAssignedLeadByUserApi(user.id, page, size);
+      res = await getAssignedLeadByUserApi(user.id, page, size);
       }
       
       const data = res.data.data;
       setLeads(data.content || data);
     
-      // Update pagination - backend returns pageNumber, pageSize, totalPages, totalElements
+  
       setPagination({
         currentPage: data.pageNumber !== undefined ? data.pageNumber : (data.number || page),
         totalPages: data.totalPages || 1,
@@ -72,7 +74,7 @@ const LeadList = () => {
   
   useEffect(() => {
     fetchLeads(0, pagination.pageSize); 
-  }, [selectedUser]);
+  }, [selectedUser,leadViewType]);
 
   const handlePageChange = (page) => {
     fetchLeads(page, pagination.pageSize);
@@ -113,7 +115,21 @@ const LeadList = () => {
   
   return (
     <div className="space-y-6">
-      {/* Filter Section */}
+      
+
+
+      <select
+  value={leadViewType}
+  onChange={(e) => setLeadViewType(e.target.value)}
+  className="border p-2 rounded"
+>
+  <option value="MY">My Leads</option>
+  {hasPermission(PERMISSIONS .LEAD_VIEW_ALL) && (
+    <option value="ALL">All Leads</option>
+  )}
+</select>
+
+  {hasPermission(PERMISSIONS.LEAD_VIEW_ALL) && (
       <Card>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex-1 min-w-[200px]">
@@ -140,7 +156,7 @@ const LeadList = () => {
           )}
         </div>
       </Card>
-
+ )}
       {/* Leads Table */}
       <Card>
         <div className="flex justify-between items-center mb-6">
@@ -148,11 +164,11 @@ const LeadList = () => {
             <h2 className="text-2xl font-bold text-secondary-900">Leads</h2>
             <p className="text-secondary-600 mt-1">Manage your sales leads and prospects</p>
           </div>
-          <Link to="/leads/add">
+         {hasPermission(PERMISSIONS.LEAD_CREATE)&&( <Link to="/leads/add">
             <Button variant="primary" icon={Plus}>
               Add Lead
             </Button>
-          </Link>
+          </Link>)}
         </div>
 
         <div className="overflow-x-auto rounded-lg border border-secondary-200">
@@ -195,15 +211,15 @@ const LeadList = () => {
 
                       <td className="px-6 py-4">
                         <div className="flex gap-3 items-center flex-wrap">
-                          <Link
+                         {hasPermission(PERMISSIONS.LEAD_VIEW)&&( <Link
                             to={`/leads/${lead.id}/details`}
                             className="flex items-center gap-1 text-primary-600 hover:text-primary-700 font-medium transition-colors"
                           >
                             <Eye size={16} />
                             View
-                          </Link>
+                          </Link>)}
 
-                          {isEditDisabled ? (
+                          {hasPermission(PERMISSIONS.LEAD_UPDATE)&&(isEditDisabled ? (
                             <span className="flex items-center gap-1 text-secondary-400 cursor-not-allowed">
                               <Edit size={16} />
                               Edit
@@ -216,10 +232,10 @@ const LeadList = () => {
                               <Edit size={16} />
                               Edit
                             </Link>
-                          )}
+                          ))}
 
                           {lead.status === "QUALIFIED" && !lead.dealId && (
-                            <Link
+                           hasPermission(PERMISSIONS.DEAL_CREATE)&& <Link
                               to={`/deals/add?leadId=${lead.id}`}
                               className="flex items-center gap-1 text-green-600 hover:text-green-700 font-semibold transition-colors"
                             >
@@ -232,14 +248,14 @@ const LeadList = () => {
                             <span className="text-secondary-400 text-sm">Deal Created</span>
                           )}
 
-                          <button
+                         {hasPermission(PERMISSIONS.LEAD_DELETE)&&( <button
                             onClick={() => handleDeleteClick(lead.id)}
                             disabled={isDeleteDisabled}
                             className="flex items-center gap-1 text-red-600 hover:text-red-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <Trash2 size={16} />
                             Delete
-                          </button>
+                          </button>)}
                         </div>
                       </td>
                     </tr>
@@ -251,8 +267,7 @@ const LeadList = () => {
                     <EmptyState
                       title="No leads found"
                       description="Start by adding your first lead to track potential customers."
-                      action={() => window.location.href = "/leads/add"}
-                      actionLabel="Add Lead"
+                  
                     />
                   </td>
                 </tr>

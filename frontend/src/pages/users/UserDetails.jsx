@@ -8,7 +8,7 @@ import Loader from "../../components/common/Loader";
 import useAuth from "../../hooks/useAuth";
 import Card from "../../components/common/Card";
 import Badge from "../../components/common/Badge";
-import Button from "../../components/common/Button";
+import usePermission from "../../hooks/usePermission";
 
 const UserDetails = () => {
   const { id } = useParams();
@@ -18,6 +18,7 @@ const UserDetails = () => {
   const { user: loggedInUser } = useAuth();
   const isOwnProfile = loggedInUser?.id?.toString() === id;
   const navigate = useNavigate();
+  const {hasPermission}=usePermission();
   useEffect(() => {
     loadData();
   }, [id]);

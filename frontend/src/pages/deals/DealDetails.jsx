@@ -25,11 +25,12 @@ import Button from "../../components/common/Button";
 import Badge from "../../components/common/Badge";
 import ConfirmModal from "../../components/common/ConfirmDialog";
 import AssignModal from "../../components/common/AssignModal";
-
+import usePermission from "../../hooks/usePermission";
+import { PERMISSIONS } from "../../config/permissions.config";
 const DealDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
+const {hasPermission}=usePermission();
   const [deal, setDeal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [assignOpen, setAssignOpen] = useState(false);
@@ -119,7 +120,8 @@ const DealDetails = () => {
             <p className="text-gray-600 mt-1">View and manage deal information</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button
+           {hasPermission(PERMISSIONS.DEAL_ASSIGN)&&(
+             <Button
               variant="success"
               icon={UserPlus}
               onClick={() => setAssignOpen(true)}
@@ -127,19 +129,20 @@ const DealDetails = () => {
             >
               {deal.assignedUserEmail ? "Reassign" : "Assign"}
             </Button>
+           )}
             {!isEditDisabled && (
-              <Link to={`/deals/${deal.id}/edit`}>
+             hasPermission(PERMISSIONS.DEAL_UPDATE)&&( <Link to={`/deals/${deal.id}/edit`}>
                 <Button variant="primary" icon={Edit}>Edit</Button>
-              </Link>
+              </Link>)
             )}
-            <Button
+          {hasPermission(PERMISSIONS.DEAL_DELETE)&&(  <Button
               variant="danger"
               icon={Trash2}
               onClick={() => setDeleteModalOpen(true)}
               disabled={isDeleteDisabled}
             >
               Delete
-            </Button>
+            </Button>)}
           </div>
         </div>
       </Card>
@@ -170,7 +173,7 @@ const DealDetails = () => {
                 {deal.dealStage.replace(/_/g, " ")}
               </Badge>
               {getAllowedNextStages(deal.dealStage).length > 0 && (
-                <div className="mt-3 flex gap-2 flex-wrap">
+               hasPermission(PERMISSIONS.DEAL_STAGE_UPDATE)&& <div className="mt-3 flex gap-2 flex-wrap">
                   {getAllowedNextStages(deal.dealStage).map((stage) => (
                     <Button
                       key={stage}

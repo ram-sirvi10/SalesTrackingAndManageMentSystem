@@ -121,7 +121,9 @@ const UserForm = () => {
   const handleSubmit = async () => {
     try {
       setLoading(true);
-
+if (isAddMode && roles.length === 0) {
+  return toast.error("Please create a role first");
+}
       if (!formData.name.trim()) {
         return toast.error("Name is required");
       }
@@ -153,15 +155,22 @@ const UserForm = () => {
         navigate(isProfileMode ? "/profile" : `/users/${updateId}`);
       }, 500);
     } catch (error) {
-      toast.error(
-        error?.response?.data?.message ||
-          "Something went wrong please try again letter",
-      );
-    } finally {
+  const errorData = error?.response?.data;
+
+  if (errorData?.data) {
+    const firstError =
+    Object.values(errorData.data)[0];
+    toast.error(firstError);
+  } else {
+    toast.error(
+      errorData?.message || "Something went wrong please try again later"
+    );
+  }
+}finally {
       setLoading(false);
     }
   };
-
+const noRoles = roles.length === 0;
   return (
     <div className="max-w-4xl">
       <Card>
@@ -223,36 +232,45 @@ const UserForm = () => {
           )}
 
           {/* Role */}
-          {isAddMode && (
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-secondary-700 mb-3">
-                Assign Roles
-              </label>
+     {isAddMode && (
+  <div className="md:col-span-2">
+    <label className="block text-sm font-medium text-secondary-700 mb-3">
+      Assign Roles
+    </label>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {roles.map((role) => (
-                  <label
-                    key={role.id}
-                    className={`flex items-center justify-between px-4 py-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
-                      formData.roles.includes(role.id)
-                        ? "bg-primary-50 border-primary-500"
-                        : "bg-secondary-50 border-secondary-200 hover:border-secondary-300"
-                    }`}
-                  >
-                    <span className="text-sm font-medium text-secondary-900">
-                      {role.roleName}
-                    </span>
-                    <input
-                      type="checkbox"
-                      checked={formData.roles.includes(role.id)}
-                      onChange={() => handleRoleChange(role.id)}
-                      className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
-                    />
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
+    {noRoles ? (
+      <div className="border rounded-lg p-6 text-center bg-yellow-50">
+        <p className="text-sm text-secondary-700 mb-4">
+          No roles available. Please create a role first.
+        </p>
+      </div>
+    ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {roles.map((role) => (
+          <label
+            key={role.id}
+            className={`flex items-center justify-between px-4 py-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+              formData.roles.includes(role.id)
+                ? "bg-primary-50 border-primary-500"
+                : "bg-secondary-50 border-secondary-200 hover:border-secondary-300"
+            }`}
+          >
+            <span className="text-sm font-medium text-secondary-900">
+              {role.roleName}
+            </span>
+
+            <input
+              type="checkbox"
+              checked={formData.roles.includes(role.id)}
+              onChange={() => handleRoleChange(role.id)}
+              className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+            />
+          </label>
+        ))}
+      </div>
+    )}
+  </div>
+)}
         </div>
 
         <div className="mt-8 flex gap-4">

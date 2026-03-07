@@ -6,13 +6,14 @@ import toast from "react-hot-toast";
 import Loader from "../../components/common/Loader";
 import Card from "../../components/common/Card";
 import Badge from "../../components/common/Badge";
-
+import usePermission from "../../hooks/usePermission";
+import { PERMISSIONS } from "../../config/permissions.config";
 const SalesDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [sale, setSale] = useState(null);
   const [loading, setLoading] = useState(true);
-
+const{hasPermission}=usePermission();
   const fetchSale = async () => {
     try {
       const res = await getSaleByIdApi(id);
@@ -118,7 +119,7 @@ const SalesDetails = () => {
                 </Badge>
                 {getAllowedNextStages(sale.paymentStatus).length > 0 && (
                   <div className="flex gap-2 flex-wrap">
-                    {getAllowedNextStages(sale.paymentStatus).map((stage) => (
+                    {hasPermission(PERMISSIONS.SALE_PAYMENT_UPDATE)&&(getAllowedNextStages(sale.paymentStatus).map((stage) => (
                       <button
                         key={stage}
                         onClick={() => handleStatusChange(stage)}
@@ -126,7 +127,7 @@ const SalesDetails = () => {
                       >
                         Move to {stage}
                       </button>
-                    ))}
+                    )))}
                   </div>
                 )}
               </div>

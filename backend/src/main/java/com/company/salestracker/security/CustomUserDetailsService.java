@@ -10,12 +10,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.company.salestracker.constants.AppConstant;
 import com.company.salestracker.entity.Permission;
 import com.company.salestracker.entity.Role;
 import com.company.salestracker.entity.User;
 import com.company.salestracker.exception.ResourceNotFoundException;
 import com.company.salestracker.repository.UserRepository;
-import com.company.salestracker.util.AppConstant;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

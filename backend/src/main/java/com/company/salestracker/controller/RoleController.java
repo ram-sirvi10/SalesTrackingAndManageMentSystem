@@ -32,107 +32,181 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class RoleController {
 
-	private final RoleService roleService;
+    private final RoleService roleService;
 
-	// CREATE ROLE
-	@PostMapping("/create-role")
-	@PreAuthorize("hasAuthority('CREATE_ROLE')")
-	public ResponseEntity<ApiResponse<RoleResponse>> registerUser(@Valid @RequestBody RoleRequest roleRequest) {
+    // ==============================
+    // CREATE ROLE
+    // ==============================
+    @PostMapping("/create-role")
+    @PreAuthorize("hasAuthority('ROLE_CREATE')")
+    public ResponseEntity<ApiResponse<RoleResponse>> createRole(@Valid @RequestBody RoleRequest roleRequest) {
 
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(ApiResponse.success("Role Created Successfully", roleService.createRole(roleRequest)));
-	}
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(
+                        "Role created successfully",
+                        roleService.createRole(roleRequest)
+                ));
+    }
 
-	// GET ADMIN ROLES
-	@GetMapping
-	@PreAuthorize("hasAuthority('VIEW_ROLES')")
-	public ResponseEntity<ApiResponse<List<RoleResponse>>> getRoles() {
 
-		return ResponseEntity
-				.ok(ApiResponse.success("Roles fetched successfully", roleService.getAllRoll()));
-	}
+    // ==============================
+    // VIEW ALL ROLES
+    // ==============================
+    @GetMapping
+    @PreAuthorize("hasAuthority('ROLE_VIEW')")
+    public ResponseEntity<ApiResponse<List<RoleResponse>>> getRoles() {
 
-	
-	// ADD SINGLE PERMISSION
-	@PatchMapping("/{roleId}/permissions/{permissionId}")
-	@PreAuthorize("hasAuthority('ADD_PERMISSION_TO_ROLE')")
-	public ResponseEntity<ApiResponse<?>> addPermission(@PathVariable String roleId,
-			@PathVariable String permissionId) {
-		roleService.addPermissionToRole(roleId, permissionId);
-		return ResponseEntity.ok(ApiResponse.success("Permission added Successfully"));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Roles fetched successfully",
+                        roleService.getAllRoll()
+                )
+        );
+    }
 
-	// ADD BULK PERMISSIONS
-	@PatchMapping("/{roleId}/permissions")
-	@PreAuthorize("hasAuthority('ADD_PERMISSION_TO_ROLE')")
-	public ResponseEntity<ApiResponse<?>> addPermissionsToRole(@PathVariable String roleId,
-			@Valid @RequestBody UpdateRolePermissionRequest request) {
 
-		roleService.addPermissionsToRole(roleId, request.getPermissions());
-		return ResponseEntity.ok(ApiResponse.success("Permissions added Successfully"));
-	}
+    // ==============================
+    // ADD SINGLE PERMISSION
+    // ==============================
+    @PatchMapping("/{roleId}/permissions/{permissionId}")
+    @PreAuthorize("hasAuthority('PERMISSION_ASSIGN')")
+    public ResponseEntity<ApiResponse<?>> addPermission(
+            @PathVariable String roleId,
+            @PathVariable String permissionId) {
 
-	// REMOVE PERMISSION
-	@DeleteMapping("/{roleId}/permissions/{permissionId}")
-	@PreAuthorize("hasAuthority('REMOVE_PERMISSION_FROM_ROLE')")
-	public ResponseEntity<ApiResponse<?>> removePermission(@PathVariable String roleId,
-			@PathVariable String permissionId) {
+        roleService.addPermissionToRole(roleId, permissionId);
 
-		roleService.removePermissionFromRole(roleId, permissionId);
-		return ResponseEntity.ok(ApiResponse.success("Permission removed Successfully"));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success("Permission added successfully")
+        );
+    }
 
-	// UPDATE ROLE
-	@PutMapping("/{roleId}")
-	@PreAuthorize("hasAuthority('UPDATE_ROLE')")
-	public ResponseEntity<ApiResponse<RoleResponse>> updateRole(@PathVariable String roleId,
-			@Valid @RequestBody RoleRequest request) {
 
-		return ResponseEntity
-				.ok(ApiResponse.success("Role updated successfully", roleService.updateRole(roleId, request)));
-	}
+    // ==============================
+    // ADD BULK PERMISSIONS
+    // ==============================
+    @PatchMapping("/{roleId}/permissions")
+    @PreAuthorize("hasAuthority('PERMISSION_ASSIGN')")
+    public ResponseEntity<ApiResponse<?>> addPermissionsToRole(
+            @PathVariable String roleId,
+            @Valid @RequestBody UpdateRolePermissionRequest request) {
 
-	// GET ROLE BY ID
-	@GetMapping("/{roleId}")
-	@PreAuthorize("hasAuthority('VIEW_ROLE')")
-	public ResponseEntity<ApiResponse<RoleResponse>> getRoleById(@PathVariable String roleId) {
+        roleService.addPermissionsToRole(roleId, request.getPermissions());
 
-		return ResponseEntity.ok(ApiResponse.success("Role fetched successfully", roleService.getRoleById(roleId)));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success("Permissions added successfully")
+        );
+    }
 
-	// GET ROLE OF USER
-	@GetMapping("/user/{userId}")
-	@PreAuthorize("hasAuthority('VIEW_USER_ROLES') or #userId == authentication.principal.id")
-	public ResponseEntity<ApiResponse<List<RoleResponse>>> getUserRoles(@PathVariable String userId) {
 
-		return ResponseEntity.ok(ApiResponse.success("User roles fetched", roleService.getRolesByUser(userId)));
-	}
+    // ==============================
+    // REMOVE PERMISSION
+    // ==============================
+    @DeleteMapping("/{roleId}/permissions/{permissionId}")
+    @PreAuthorize("hasAuthority('PERMISSION_REMOVE')")
+    public ResponseEntity<ApiResponse<?>> removePermission(
+            @PathVariable String roleId,
+            @PathVariable String permissionId) {
 
-	// ASSIGN ROLE TO USER
-	@PatchMapping("/assign-role")
-	@PreAuthorize("hasAuthority('ASSIGN_ROLE')")
-	public ResponseEntity<ApiResponse<?>> assignRoleToUser(@Valid @RequestBody AssignRolesRequest request) {
+        roleService.removePermissionFromRole(roleId, permissionId);
 
-		roleService.assignRolesToUser(request);
-		return ResponseEntity.ok(ApiResponse.success("Roles assigned successfully"));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success("Permission removed successfully")
+        );
+    }
 
-	// REMOVE ROLE FROM USER
-	@DeleteMapping("/remove-role")
-	@PreAuthorize("hasAuthority('REMOVE_ROLE_FROM_USER')")
-	public ResponseEntity<ApiResponse<?>> removeRoleFromUser(@Valid @RequestBody RemoveRoleRequest request) {
 
-		roleService.removeRoleFromUser(request.getUserId(), request.getRoleId());
-		return ResponseEntity.ok(ApiResponse.success("Role removed successfully"));
-	}
+    // ==============================
+    // UPDATE ROLE
+    // ==============================
+    @PutMapping("/{roleId}")
+    @PreAuthorize("hasAuthority('ROLE_UPDATE')")
+    public ResponseEntity<ApiResponse<RoleResponse>> updateRole(
+            @PathVariable String roleId,
+            @Valid @RequestBody RoleRequest request) {
 
-	// DELETE ROLE
-	@DeleteMapping("/{roleId}")
-	@PreAuthorize("hasAuthority('DELETE_ROLE')")
-	public ResponseEntity<ApiResponse<?>> deleteRole(@PathVariable String roleId) {
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Role updated successfully",
+                        roleService.updateRole(roleId, request)
+                )
+        );
+    }
 
-		roleService.deleteRole(roleId);
-		return ResponseEntity.ok(ApiResponse.success("Role deleted successfully"));
-	}
 
+    // ==============================
+    // GET ROLE BY ID
+    // ==============================
+    @GetMapping("/{roleId}")
+    @PreAuthorize("hasAuthority('ROLE_VIEW')")
+    public ResponseEntity<ApiResponse<RoleResponse>> getRoleById(@PathVariable String roleId) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Role fetched successfully",
+                        roleService.getRoleById(roleId)
+                )
+        );
+    }
+
+
+    // ==============================
+    // GET ROLE OF USER
+    // ==============================
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAuthority('ROLE_VIEW') or #userId == authentication.principal.id")
+    public ResponseEntity<ApiResponse<List<RoleResponse>>> getUserRoles(@PathVariable String userId) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "User roles fetched successfully",
+                        roleService.getRolesByUser(userId)
+                )
+        );
+    }
+
+
+    // ==============================
+    // ASSIGN ROLE TO USER
+    // ==============================
+    @PatchMapping("/assign-role")
+    @PreAuthorize("hasAuthority('ROLE_ASSIGN')")
+    public ResponseEntity<ApiResponse<?>> assignRoleToUser(@Valid @RequestBody AssignRolesRequest request) {
+
+        roleService.assignRolesToUser(request);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Roles assigned successfully")
+        );
+    }
+
+
+    // ==============================
+    // REMOVE ROLE FROM USER
+    // ==============================
+    @DeleteMapping("/remove-role")
+    @PreAuthorize("hasAuthority('ROLE_REMOVE')")
+    public ResponseEntity<ApiResponse<?>> removeRoleFromUser(@Valid @RequestBody RemoveRoleRequest request) {
+
+        roleService.removeRoleFromUser(request.getUserId(), request.getRoleId());
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Role removed successfully")
+        );
+    }
+
+
+    // ==============================
+    // DELETE ROLE
+    // ==============================
+    @DeleteMapping("/{roleId}")
+    @PreAuthorize("hasAuthority('ROLE_DELETE')")
+    public ResponseEntity<ApiResponse<?>> deleteRole(@PathVariable String roleId) {
+
+        roleService.deleteRole(roleId);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Role deleted successfully")
+        );
+    }
 }

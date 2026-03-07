@@ -10,12 +10,16 @@ import Button from "../../components/common/Button";
 import Badge from "../../components/common/Badge";
 import EmptyState from "../../components/common/EmptyState";
 import Pagination from "../../components/common/Pagination";
-
+import { PERMISSIONS } from "../../config/permissions.config";
+import usePermission from "../../hooks/usePermission";
 const SalesList = () => {
+    const { hasPermission } = usePermission();
   const [sales, setSales] = useState([]);
+  const [saleViewType, setSaleViewType] = useState("MY");
   const [loading, setLoading] = useState(true);
   const [userModal, setUserModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const { user } = useAuth();
   const [pagination, setPagination] = useState({
     currentPage: 0,
     totalPages: 0,
@@ -30,8 +34,15 @@ const SalesList = () => {
 
       if (selectedUser) {
         res = await getSalesByCommissionUserApi(selectedUser.id, page, size);
-      } else res = await getAllApi(page, size);
-      
+      }      else if (saleViewType === "ALL" && hasPermission("SALE_VIEW_ALL")) {
+      res = await getAllApi(page, size);
+      } else {
+      res = await getSalesByCommissionUserApi(user.id, page, size);
+      }
+
+
+
+
       const data = res.data.data;
       setSales(data.content || data);
       
@@ -51,7 +62,7 @@ const SalesList = () => {
 
   useEffect(() => {
     fetchSales(0, pagination.pageSize); // Reset to first page when user filter changes
-  }, [selectedUser]);
+  }, [selectedUser,saleViewType]);
 
   const handlePageChange = (page) => {
     fetchSales(page, pagination.pageSize);
@@ -79,7 +90,18 @@ const SalesList = () => {
 
   return (
     <div className="space-y-6">
-      {/* Filter Section */}
+      <select
+  value={saleViewType}
+  onChange={(e) => setSaleViewType(e.target.value)}
+  className="border p-2 rounded"
+>
+  <option value="MY">My Leads</option>
+  {hasPermission(PERMISSIONS.SALE_VIEW_ALL) && (
+    <option value="ALL">All Leads</option>
+  )}
+</select>
+
+  {hasPermission(PERMISSIONS.SALE_VIEW_ALL) && (
       <Card>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex-1 min-w-[200px]">
@@ -104,13 +126,13 @@ const SalesList = () => {
               Reset
             </Button>
           )}
-          <Link to="/sales-report">
+         {hasPermission(PERMISSIONS.SALE_SUMMARY_VIEW)&&( <Link to="/sales-report">
             <Button variant="success" icon={BarChart3}>
               View Sales Report
             </Button>
-          </Link>
+          </Link>)}
         </div>
-      </Card>
+      </Card>)}
 
       {/* Sales Table */}
       <Card>
@@ -154,13 +176,16 @@ const SalesList = () => {
                       </Badge>
                     </td>
                     <td className="px-6 py-4">
-                      <Link
+                     
+
+
+                     {hasPermission(PERMISSIONS.SALE_VIEW)&&( <Link
                         to={`/sales/${sale.id}/details`}
                         className="flex items-center gap-1 text-primary-600 hover:text-primary-700 font-medium transition-colors"
                       >
                         <Eye size={16} />
                         View
-                      </Link>
+                      </Link>)}
                     </td>
                   </tr>
                 ))

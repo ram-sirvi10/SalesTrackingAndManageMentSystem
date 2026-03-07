@@ -4,8 +4,8 @@ import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
+import com.company.salestracker.constants.AppConstant;
 import com.company.salestracker.customannotation.ValidRoles;
-import com.company.salestracker.util.AppConstant;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

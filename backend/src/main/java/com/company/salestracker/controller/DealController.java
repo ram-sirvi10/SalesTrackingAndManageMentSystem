@@ -28,98 +28,112 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/deals")
 @RequiredArgsConstructor
 public class DealController {
-	private final DealService dealService;
 
-	// ==============================
-	// CREATE DEAL
-	// ==============================
-	@PostMapping
-	@PreAuthorize("hasAuthority('CREATE_DEAL')")
-	public ResponseEntity<ApiResponse<DealResponse>> createDeal(@Valid @RequestBody DealRequest request) {
+    private final DealService dealService;
 
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(ApiResponse.success("Deal created successfully", dealService.createDeal(request)));
-	}
+    // ==============================
+    // CREATE DEAL
+    // ==============================
+    @PostMapping
+    @PreAuthorize("hasAuthority('DEAL_CREATE')")
+    public ResponseEntity<ApiResponse<DealResponse>> createDeal(@Valid @RequestBody DealRequest request) {
 
-	// ==============================
-	// UPDATE DEAL
-	// ==============================
-	@PutMapping("/{dealId}")
-	@PreAuthorize("hasAuthority('UPDATE_DEAL')")
-	public ResponseEntity<ApiResponse<DealResponse>> updateDeal(@Valid @RequestBody DealRequest request,
-			@PathVariable String dealId) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Deal created successfully",
+                        dealService.createDeal(request)));
+    }
 
-		return ResponseEntity.status(HttpStatus.OK)
-				.body(ApiResponse.success("Deal created successfully", dealService.updateDeal(dealId, request)));
-	}
+    // ==============================
+    // UPDATE DEAL
+    // ==============================
+    @PutMapping("/{dealId}")
+    @PreAuthorize("hasAuthority('DEAL_UPDATE')")
+    public ResponseEntity<ApiResponse<DealResponse>> updateDeal(
+            @Valid @RequestBody DealRequest request,
+            @PathVariable String dealId) {
 
-	// ==============================
-	// ASSIGN DEAL
-	// ==============================
-	@PatchMapping("/assign")
-	@PreAuthorize("hasAuthority('ASSIGN_DEAL')")
-	public ResponseEntity<ApiResponse<DealResponse>> assignLead(@Valid @RequestBody DealAssignRequest request) {
+        return ResponseEntity.ok(
+                ApiResponse.success("Deal updated successfully",
+                        dealService.updateDeal(dealId, request)));
+    }
 
-		return ResponseEntity.ok(ApiResponse.success("Deal assigned successfully", dealService.assignDeal(request)));
-	}
+    // ==============================
+    // ASSIGN DEAL
+    // ==============================
+    @PatchMapping("/assign")
+    @PreAuthorize("hasAuthority('DEAL_ASSIGN')")
+    public ResponseEntity<ApiResponse<DealResponse>> assignDeal(
+            @Valid @RequestBody DealAssignRequest request) {
 
-	// ==============================
-	// UPDATE STATUS
-	// ==============================
-	@PatchMapping("/stage")
-	@PreAuthorize("hasAuthority('UPDATE_DEAL_STAGE')")
-	public ResponseEntity<ApiResponse<DealResponse>> updateStatus(@Valid @RequestBody DealStageUpdateRequest request) {
+        return ResponseEntity.ok(
+                ApiResponse.success("Deal assigned successfully",
+                        dealService.assignDeal(request)));
+    }
 
-		return ResponseEntity
-				.ok(ApiResponse.success("Deat stage updated successfully", dealService.updateStage(request)));
-	}
+    // ==============================
+    // UPDATE DEAL STAGE
+    // ==============================
+    @PatchMapping("/stage")
+    @PreAuthorize("hasAuthority('DEAL_STAGE_UPDATE')")
+    public ResponseEntity<ApiResponse<DealResponse>> updateStage(
+            @Valid @RequestBody DealStageUpdateRequest request) {
 
-	// ==============================
-	// DELETE DEAL
-	// ==============================
-	@DeleteMapping("/{dealId}")
-	@PreAuthorize("hasAuthority('DELETE_DEAL')")
-	public ResponseEntity<ApiResponse<?>> deleteLead(@PathVariable String dealId) {
+        return ResponseEntity.ok(
+                ApiResponse.success("Deal stage updated successfully",
+                        dealService.updateStage(request)));
+    }
 
-		dealService.deleteDeal(dealId);
+    // ==============================
+    // DELETE DEAL
+    // ==============================
+    @DeleteMapping("/{dealId}")
+    @PreAuthorize("hasAuthority('DEAL_DELETE')")
+    public ResponseEntity<ApiResponse<?>> deleteDeal(@PathVariable String dealId) {
 
-		return ResponseEntity.ok(ApiResponse.success("Deal deleted successfully"));
-	}
+        dealService.deleteDeal(dealId);
 
-	// ==============================
-	// GET DEAL BY ID
-	// ==============================
-	@GetMapping("/{dealId}")
-	@PreAuthorize("hasAuthority('GET_DEAL_BY_ID')")
-	public ResponseEntity<ApiResponse<?>> getLeadById(@PathVariable String dealId) {
+        return ResponseEntity.ok(
+                ApiResponse.success("Deal deleted successfully"));
+    }
 
-		return ResponseEntity.ok(ApiResponse.success("Deal fetched successfully", dealService.getById(dealId)));
+    // ==============================
+    // GET DEAL BY ID
+    // ==============================
+    @GetMapping("/{dealId}")
+    @PreAuthorize("hasAuthority('DEAL_VIEW')")
+    public ResponseEntity<ApiResponse<?>> getDealById(@PathVariable String dealId) {
 
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success("Deal fetched successfully",
+                        dealService.getById(dealId)));
+    }
 
-	// ==============================
-	// VIEW ALL DEALS
-	// ==============================
-	@GetMapping
-	@PreAuthorize("hasAuthority('VIEW_ALL_DEALS')")
-	public ResponseEntity<ApiResponse<PaginationResponse<?>>> viewAllLeads(@RequestParam(defaultValue = "0") int pageNo,
-			@RequestParam(defaultValue = "10") int pageSize) {
+    // ==============================
+    // VIEW ALL DEALS
+    // ==============================
+    @GetMapping
+    @PreAuthorize("hasAuthority('DEAL_VIEW_ALL')")
+    public ResponseEntity<ApiResponse<PaginationResponse<?>>> viewAllDeals(
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize) {
 
-		return ResponseEntity
-				.ok(ApiResponse.success("Deals fetched successfully", dealService.viewAllDeals(pageNo, pageSize)));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success("Deals fetched successfully",
+                        dealService.viewAllDeals(pageNo, pageSize)));
+    }
 
-	// ==============================
-	// VIEW DEALS BY ASSIGNED USER
-	// ==============================
-	@GetMapping("/assigned/{userId}")
-//	@PreAuthorize("hasAuthority('VIEW_ASSIGNED_DEALS_BY_USER')")
-	@PreAuthorize("hasAuthority('VIEW_ASSIGNED_DEAL_OF_OTHER_USER') or #userId == authentication.principal.id")
-	public ResponseEntity<ApiResponse<PaginationResponse<?>>> viewLeadsByAssignedUser(@PathVariable String userId,
-			@RequestParam(defaultValue = "0") int pageNo, @RequestParam(defaultValue = "10") int pageSize) {
+    // ==============================
+    // VIEW DEALS BY ASSIGNED USER
+    // ==============================
+    @GetMapping("/assigned/{userId}")
+    @PreAuthorize("hasAuthority('DEAL_VIEW') or #userId == authentication.principal.id")
+    public ResponseEntity<ApiResponse<PaginationResponse<?>>> viewDealsByAssignedUser(
+            @PathVariable String userId,
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize) {
 
-		return ResponseEntity.ok(ApiResponse.success("Assigned Deals to this user fetched successfully",
-				dealService.viewDealsByAssignedUser(userId, pageNo, pageSize)));
-	}
-
+        return ResponseEntity.ok(
+                ApiResponse.success("Assigned deals fetched successfully",
+                        dealService.viewDealsByAssignedUser(userId, pageNo, pageSize)));
+    }
 }

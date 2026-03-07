@@ -18,10 +18,12 @@ import Badge from "../../components/common/Badge";
 import EmptyState from "../../components/common/EmptyState";
 import ConfirmModal from "../../components/common/ConfirmDialog";
 import Pagination from "../../components/common/Pagination";
-
+import usePermission from "../../hooks/usePermission";
+import { PERMISSIONS } from "../../config/permissions.config";
 const UserList = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [users, setUsers] = useState([]);
+  const{hasPermission}=usePermission();
   const [pagination, setPagination] = useState({
     currentPage: 0,
     totalPages: 0,
@@ -149,11 +151,11 @@ const UserList = () => {
               Manage your team members and permissions
             </p>
           </div>
-          <Link to="/users/add">
+         {hasPermission(PERMISSIONS.USER_CREATE)&& <Link to="/users/add">
             <Button variant="primary" icon={UserPlus}>
               Add User
             </Button>
-          </Link>
+          </Link>}
         </div>
 
         {!user.superAdmin && (
@@ -169,16 +171,7 @@ const UserList = () => {
               All Users
             </button>
 
-            <button
-              onClick={() => setActiveTab("pending")}
-              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                activeTab === "pending"
-                  ? "bg-yellow-500 text-white shadow-sm"
-                  : "bg-secondary-100 text-secondary-700 hover:bg-secondary-200"
-              }`}
-            >
-              Pending Requests
-            </button>
+           
           </div>
         )}
 
@@ -233,7 +226,7 @@ const UserList = () => {
                     <td className="px-6 py-4">
                       <div className="flex gap-3 flex-wrap">
                         {activeTab === "pending" ? (
-                          <>
+                         hasPermission(PERMISSIONS.USER_APPROVE)&& <>
                             <button
                               onClick={() => handleApprove(user.id)}
                               className="flex items-center gap-1 text-green-600 hover:text-green-700 font-medium transition-colors"
@@ -260,15 +253,15 @@ const UserList = () => {
                               View
                             </Link>
 
-                            <Link
+                           {hasPermission(PERMISSIONS.USER_UPDATE)&& <Link
                               to={`/users/${user.id}/edit`}
                               className="flex items-center gap-1 text-green-600 hover:text-green-700 font-medium transition-colors"
                             >
                               <Edit size={16} />
                               Edit
-                            </Link>
+                            </Link>}
 
-                            <button
+                           {hasPermission(PERMISSIONS.USER_STATUS_UPDATE)&& <button
                               onClick={() => handleToggle(user.id)}
                               className="flex items-center gap-1 text-yellow-600 hover:text-yellow-700 font-medium transition-colors"
                             >
@@ -276,15 +269,15 @@ const UserList = () => {
                               {user.status === "ACTIVE"
                                 ? "Deactivate"
                                 : "Activate"}
-                            </button>
+                            </button>}
 
-                            <button
+                           {hasPermission(PERMISSIONS.USER_DELETE)&& <button
                               onClick={() => handleDeleteClick(user.id)}
                               className="flex items-center gap-1 text-red-600 hover:text-red-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <Trash2 size={16} />
                               Delete
-                            </button>
+                            </button>}
                           </>
                         )}
                       </div>

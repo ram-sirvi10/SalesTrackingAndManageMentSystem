@@ -29,100 +29,133 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TargetController {
 
-	private final TargetService targetService;
+    private final TargetService targetService;
 
-	// ==============================
-	// CREATE TARGET
-	// ==============================
-	@PostMapping
-	@PreAuthorize("hasAuthority('CREATE_TARGET')")
-	public ResponseEntity<ApiResponse<TargetResponse>> createTarget(@Valid @RequestBody TargetRequest request) {
+    // ==============================
+    // CREATE TARGET
+    // ==============================
+    @PostMapping
+    @PreAuthorize("hasAuthority('TARGET_CREATE')")
+    public ResponseEntity<ApiResponse<TargetResponse>> createTarget(@Valid @RequestBody TargetRequest request) {
 
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(ApiResponse.success("Target created successfully", targetService.createTarget(request)));
-	}
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(
+                        "Target created successfully",
+                        targetService.createTarget(request)
+                ));
+    }
 
-	// ==============================
-	// UPDATE TARGET
-	// ==============================
-	@PutMapping("/{targetId}")
-	@PreAuthorize("hasAuthority('UPDATE_TARGET')")
-	public ResponseEntity<ApiResponse<TargetResponse>> updateTarget(@PathVariable String targetId,
-			@Valid @RequestBody TargetRequest request) {
+    // ==============================
+    // UPDATE TARGET
+    // ==============================
+    @PutMapping("/{targetId}")
+    @PreAuthorize("hasAuthority('TARGET_UPDATE')")
+    public ResponseEntity<ApiResponse<TargetResponse>> updateTarget(
+            @PathVariable String targetId,
+            @Valid @RequestBody TargetRequest request) {
 
-		return ResponseEntity
-				.ok(ApiResponse.success("Target updated successfully", targetService.updateTarget(targetId, request)));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Target updated successfully",
+                        targetService.updateTarget(targetId, request)
+                )
+        );
+    }
 
-	// ==============================
-	// DELETE TARGET
-	// ==============================
-	@DeleteMapping("/{targetId}")
-	@PreAuthorize("hasAuthority('DELETE_TARGET')")
-	public ResponseEntity<ApiResponse<?>> deleteTarget(@PathVariable String targetId) {
+    // ==============================
+    // DELETE TARGET
+    // ==============================
+    @DeleteMapping("/{targetId}")
+    @PreAuthorize("hasAuthority('TARGET_DELETE')")
+    public ResponseEntity<ApiResponse<?>> deleteTarget(@PathVariable String targetId) {
 
-		targetService.deleteTarget(targetId);
+        targetService.deleteTarget(targetId);
 
-		return ResponseEntity.ok(ApiResponse.success("Target deleted successfully"));
-	}
+        return ResponseEntity.ok(ApiResponse.success("Target deleted successfully"));
+    }
 
-	// ==============================
-	// GET TARGET BY ID
-	// ==============================
-	@GetMapping("/{targetId}")
-	@PreAuthorize("hasAuthority('GET_TARGET_BY_ID')")
-	public ResponseEntity<ApiResponse<TargetResponse>> getTargetById(@PathVariable String targetId) {
+    // ==============================
+    // GET TARGET BY ID
+    // ==============================
+    @GetMapping("/{targetId}")
+    @PreAuthorize("hasAuthority('TARGET_VIEW')")
+    public ResponseEntity<ApiResponse<TargetResponse>> getTargetById(@PathVariable String targetId) {
 
-		return ResponseEntity
-				.ok(ApiResponse.success("Target fetched successfully", targetService.getTargetById(targetId)));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Target fetched successfully",
+                        targetService.getTargetById(targetId)
+                )
+        );
+    }
 
-	// ==============================
-	// VIEW ALL TARGETS
-	// ==============================
-	@GetMapping
-	@PreAuthorize("hasAuthority('VIEW_ALL_TARGETS')")
-	public ResponseEntity<ApiResponse<PaginationResponse<TargetResponse>>> viewAllTargets(
-			@RequestParam(defaultValue = "0") int pageNo, @RequestParam(defaultValue = "10") int pageSize) {
+    // ==============================
+    // VIEW ALL TARGETS
+    // ==============================
+    @GetMapping
+    @PreAuthorize("hasAuthority('TARGET_VIEW_ALL')")
+    public ResponseEntity<ApiResponse<PaginationResponse<TargetResponse>>> viewAllTargets(
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize) {
 
-		return ResponseEntity
-				.ok(ApiResponse.success("Targets fetched successfully", targetService.getAllTargets(pageNo, pageSize)));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Targets fetched successfully",
+                        targetService.getAllTargets(pageNo, pageSize)
+                )
+        );
+    }
 
-	// ==============================
-	// VIEW TARGETS BY USER
-	// ==============================
-	@GetMapping("/user/{userId}")
-	@PreAuthorize("hasAuthority('VIEW_TARGET_OF_USER') or #userId == authentication.principal.id")
-	public ResponseEntity<ApiResponse<PaginationResponse<TargetResponse>>> viewTargetsByUser(
-			@PathVariable String userId, @RequestParam(defaultValue = "0") int pageNo,
-			@RequestParam(defaultValue = "10") int pageSize) {
+    // ==============================
+    // VIEW TARGETS BY USER
+    // ==============================
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAuthority('TARGET_VIEW') or #userId == authentication.principal.id")
+    public ResponseEntity<ApiResponse<PaginationResponse<TargetResponse>>> viewTargetsByUser(
+            @PathVariable String userId,
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize) {
 
-		return ResponseEntity.ok(ApiResponse.success("User targets fetched successfully",
-				targetService.getTargetsByUser(userId, pageNo, pageSize)));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "User targets fetched successfully",
+                        targetService.getTargetsByUser(userId, pageNo, pageSize)
+                )
+        );
+    }
 
-	// ==============================
-	// TEAM PERFORMANCE
-	// ==============================
-	@GetMapping("/performance/team")
-	@PreAuthorize("hasAuthority('VIEW_TEAM_TARGET_PERFORMANCE')")
-	public ResponseEntity<ApiResponse<List<TargetResponse>>> getTeamPerformance(@RequestParam Integer month,
-			@RequestParam Integer year) {
+    // ==============================
+    // TEAM PERFORMANCE
+    // ==============================
+    @GetMapping("/performance/team")
+    @PreAuthorize("hasAuthority('TARGET_TEAM_PERFORMANCE')")
+    public ResponseEntity<ApiResponse<List<TargetResponse>>> getTeamPerformance(
+            @RequestParam Integer month,
+            @RequestParam Integer year) {
 
-		return ResponseEntity.ok(ApiResponse.success("Team performance fetched successfully",
-				targetService.getTeamPerformance(month, year)));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Team performance fetched successfully",
+                        targetService.getTeamPerformance(month, year)
+                )
+        );
+    }
 
-	// ==============================
-	// USER PERFORMANCE
-	// ==============================
-	@GetMapping("/performance/user/{userId}")
-	@PreAuthorize("hasAuthority('VIEW_USER_TARGET_PERFORMANCE') or #userId == authentication.principal.id")
-	public ResponseEntity<ApiResponse<TargetResponse>> getUserPerformance(@PathVariable String userId,
-			@RequestParam Integer month, @RequestParam Integer year) {
+    // ==============================
+    // USER PERFORMANCE
+    // ==============================
+    @GetMapping("/performance/user/{userId}")
+    @PreAuthorize("hasAuthority('TARGET_USER_PERFORMANCE') or #userId == authentication.principal.id")
+    public ResponseEntity<ApiResponse<TargetResponse>> getUserPerformance(
+            @PathVariable String userId,
+            @RequestParam Integer month,
+            @RequestParam Integer year) {
 
-		return ResponseEntity.ok(ApiResponse.success("User performance fetched successfully",
-				targetService.getUserPerformance(userId, month, year)));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "User performance fetched successfully",
+                        targetService.getUserPerformance(userId, month, year)
+                )
+        );
+    }
 }

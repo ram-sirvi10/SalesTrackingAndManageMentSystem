@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.company.salestracker.constants.AppConstant;
 import com.company.salestracker.dto.request.UpdateUserRequest;
 import com.company.salestracker.dto.response.PaginationResponse;
 import com.company.salestracker.dto.response.UserResponse;
@@ -19,7 +20,6 @@ import com.company.salestracker.mapper.Mapper;
 import com.company.salestracker.repository.UserRepository;
 import com.company.salestracker.service.UserService;
 import com.company.salestracker.util.AppCommon;
-import com.company.salestracker.util.AppConstant;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

@@ -33,7 +33,10 @@ axiosClient.interceptors.response.use(
     if (!error.response) {
       return Promise.reject(error);
     }
-
+  const status = error.response.status;
+  if (status === 403) window.location.href ="/403";
+if (status === 404) window.location.href = "/404";
+if (status === 500) window.location.href = "/500";
     const isUnauthorized = error.response.status === 401;
     const isRefreshCall = originalRequest.url.includes("/auth/refresh-token");
 

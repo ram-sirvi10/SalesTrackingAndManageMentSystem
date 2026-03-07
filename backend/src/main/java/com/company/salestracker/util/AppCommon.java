@@ -6,6 +6,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import com.company.salestracker.constants.AppConstant;
 import com.company.salestracker.entity.Deal;
 import com.company.salestracker.entity.Lead;
 import com.company.salestracker.entity.Role;

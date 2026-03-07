@@ -2,8 +2,8 @@ package com.company.salestracker.dto.request;
 
 import java.util.Set;
 
+import com.company.salestracker.constants.AppConstant;
 import com.company.salestracker.customannotation.ValidPermission;
-import com.company.salestracker.util.AppConstant;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

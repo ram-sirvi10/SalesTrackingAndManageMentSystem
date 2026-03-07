@@ -1,4 +1,4 @@
-package com.company.salestracker.util;
+package com.company.salestracker.constants;
 
 public class AppConstant {
 	

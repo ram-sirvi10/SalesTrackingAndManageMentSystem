@@ -21,70 +21,89 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ReportController {
 
-	private final ReportService reportService;
+    private final ReportService reportService;
 
-	// ==============================
-	// SALES BY USER
-	// ==============================
-	@GetMapping("/sales-by-user")
-	@PreAuthorize("hasAuthority('VIEW_SALES_REPORT')")
-	public ResponseEntity<ApiResponse<ReportResponse>> salesByUser(@RequestParam LocalDate startDate,
-			@RequestParam LocalDate endDate) {
+    // ==============================
+    // SALES BY USER
+    // ==============================
+    @GetMapping("/sales-by-user")
+    @PreAuthorize("hasAuthority('REPORT_SALES')")
+    public ResponseEntity<ApiResponse<ReportResponse>> salesByUser(
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate) {
 
-		ReportResponse response = reportService.getSalesByUser(new ReportFilter(startDate, endDate));
+        ReportResponse response = reportService.getSalesByUser(
+                new ReportFilter(startDate, endDate));
 
-		return ResponseEntity.ok(ApiResponse.success("Sales by user report fetched successfully", response));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success("Sales by user report fetched successfully", response));
+    }
 
-	// ==============================
-	// SALES BY PERIOD
-	// ==============================
-	@GetMapping("/sales-by-period")
-	@PreAuthorize("hasAuthority('VIEW_SALES_REPORT')")
-	public ResponseEntity<ApiResponse<ReportResponse>> salesByPeriod(@RequestParam LocalDate startDate,
-			@RequestParam LocalDate endDate) {
 
-		ReportResponse response = reportService.getSalesByPeriod(new ReportFilter(startDate, endDate));
+    // ==============================
+    // SALES BY PERIOD
+    // ==============================
+    @GetMapping("/sales-by-period")
+    @PreAuthorize("hasAuthority('REPORT_SALES')")
+    public ResponseEntity<ApiResponse<ReportResponse>> salesByPeriod(
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate) {
 
-		return ResponseEntity.ok(ApiResponse.success("Sales by period report fetched successfully", response));
-	}
+        ReportResponse response = reportService.getSalesByPeriod(
+                new ReportFilter(startDate, endDate));
 
-	// ==============================
-	// LEAD TO DEAL CONVERSION
-	// ==============================
-	@GetMapping("/conversion")
-	@PreAuthorize("hasAuthority('VIEW_CONVERSION_REPORT')")
-	public ResponseEntity<ApiResponse<ReportResponse>> conversion(@RequestParam LocalDate startDate,
-			@RequestParam LocalDate endDate) {
+        return ResponseEntity.ok(
+                ApiResponse.success("Sales by period report fetched successfully", response));
+    }
 
-		ReportResponse response = reportService.getConversion(new ReportFilter(startDate, endDate));
 
-		return ResponseEntity.ok(ApiResponse.success("Lead to deal conversion report fetched successfully", response));
-	}
+    // ==============================
+    // LEAD TO DEAL CONVERSION
+    // ==============================
+    @GetMapping("/conversion")
+    @PreAuthorize("hasAuthority('REPORT_CONVERSION')")
+    public ResponseEntity<ApiResponse<ReportResponse>> conversion(
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate) {
 
-	// ==============================
-	// LOST DEAL ANALYSIS
-	// ==============================
-	@GetMapping("/lost-deals")
-	@PreAuthorize("hasAuthority('VIEW_LOST_DEAL_REPORT')")
-	public ResponseEntity<ApiResponse<ReportResponse>> lostDeals(@RequestParam LocalDate startDate,
-			@RequestParam LocalDate endDate) {
+        ReportResponse response = reportService.getConversion(
+                new ReportFilter(startDate, endDate));
 
-		ReportResponse response = reportService.getLostDealReport(new ReportFilter(startDate, endDate));
+        return ResponseEntity.ok(
+                ApiResponse.success("Lead to deal conversion report fetched successfully", response));
+    }
 
-		return ResponseEntity.ok(ApiResponse.success("Lost deal analysis report fetched successfully", response));
-	}
 
-	// ==============================
-	// DASHBOARD REPORT
-	// ==============================
-	@GetMapping("/dashboard")
-	@PreAuthorize("hasAuthority('VIEW_DASHBOARD_REPORT')")
-	public ResponseEntity<ApiResponse<ReportResponse>> dashboard(@RequestParam LocalDate startDate,
-			@RequestParam LocalDate endDate) {
+    // ==============================
+    // LOST DEAL ANALYSIS
+    // ==============================
+    @GetMapping("/lost-deals")
+    @PreAuthorize("hasAuthority('REPORT_LOST_DEALS')")
+    public ResponseEntity<ApiResponse<ReportResponse>> lostDeals(
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate) {
 
-		ReportResponse response = reportService.getDashboardReport(new ReportFilter(startDate, endDate));
+        ReportResponse response = reportService.getLostDealReport(
+                new ReportFilter(startDate, endDate));
 
-		return ResponseEntity.ok(ApiResponse.success("Dashboard report fetched successfully", response));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success("Lost deal analysis report fetched successfully", response));
+    }
+
+
+    // ==============================
+    // DASHBOARD REPORT
+    // ==============================
+    @GetMapping("/dashboard")
+    @PreAuthorize("hasAuthority('REPORT_DASHBOARD')")
+    public ResponseEntity<ApiResponse<ReportResponse>> dashboard(
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate) {
+
+        ReportResponse response = reportService.getDashboardReport(
+                new ReportFilter(startDate, endDate));
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Dashboard report fetched successfully", response));
+    }
 }

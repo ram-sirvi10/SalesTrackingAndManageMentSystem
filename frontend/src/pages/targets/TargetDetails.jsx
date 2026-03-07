@@ -20,7 +20,8 @@ import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import Badge from "../../components/common/Badge";
 import ConfirmModal from "../../components/common/ConfirmDialog";
-
+import usePermission from "../../hooks/usePermission";
+import { PERMISSIONS } from "../../config/permissions.config";
 const months = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
@@ -32,7 +33,7 @@ const TargetDetails = () => {
   const [target, setTarget] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-
+const{hasPermission}=usePermission();
   useEffect(() => {
     const fetchTarget = async () => {
       try {
@@ -92,18 +93,23 @@ const TargetDetails = () => {
             <p className="text-gray-600 mt-1">View and manage target information</p>
           </div>
           <div className="flex items-center gap-3">
-            <Link to={`/targets/${id}/edit`}>
+            {hasPermission(PERMISSIONS.TARGET_UPDATE)&&(<Link to={`/targets/${id}/edit`}>
               <Button variant="primary" icon={Edit}>
                 Edit
               </Button>
-            </Link>
-            <Button
+            </Link>)
+            
+            
+            }{
+              hasPermission(PERMISSIONS.TARGET_DELETE)&&(  <Button
               variant="danger"
               icon={Trash2}
               onClick={() => setDeleteModalOpen(true)}
             >
               Delete
-            </Button>
+            </Button>)
+            }
+          
           </div>
         </div>
       </Card>

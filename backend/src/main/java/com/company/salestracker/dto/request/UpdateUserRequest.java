@@ -2,7 +2,7 @@ package com.company.salestracker.dto.request;
 
 import org.springframework.stereotype.Component;
 
-import com.company.salestracker.util.AppConstant;
+import com.company.salestracker.constants.AppConstant;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

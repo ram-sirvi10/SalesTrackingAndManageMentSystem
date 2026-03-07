@@ -12,7 +12,7 @@ const PermissionRoute = ({ children, permission }) => {
   const userPermissions = user?.permissions || [];
 
   if (!userPermissions.includes(permission)) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/403" replace />;
   }
 
   return children;

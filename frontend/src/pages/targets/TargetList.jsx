@@ -17,6 +17,7 @@ import Button from "../../components/common/Button";
 import Badge from "../../components/common/Badge";
 import EmptyState from "../../components/common/EmptyState";
 import Pagination from "../../components/common/Pagination";
+import { PERMISSIONS } from "../../config/permissions.config";
 
 const months = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -30,6 +31,7 @@ const TargetList = () => {
   const [userModal, setUserModal] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedTarget, setSelectedTarget] = useState("");
+    const [targetViewType, setTargetViewType] = useState("MY");
   const [pagination, setPagination] = useState({
     currentPage: 0,
     totalPages: 0,
@@ -48,7 +50,7 @@ const TargetList = () => {
 
       if (selectedUser) {
         res = await getTargetsByUserApi(selectedUser.id, page, size);
-      } else if (hasPermission("VIEW_ALL_TARGETS")) {
+      } else if (targetViewTypeViewType === "ALL"&&hasPermission(PERMISSIONS.TARGET_VIEW_ALL)) {
         res = await getAllTargetsApi(page, size);
       } else {
         res = await getTargetsByUserApi(user.id, page, size);
@@ -104,7 +106,16 @@ const TargetList = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      <select
+  value={saleViewType}
+  onChange={(e) => setTargetViewType(e.target.value)}
+  className="border p-2 rounded"
+>
+  <option value="MY">My Leads</option>
+  {hasPermission(PERMISSIONS.SALE_VIEW_ALL) && (
+    <option value="ALL">All Leads</option>
+  )}
+</select>
       <Card>
         <div className="flex items-center justify-between">
           <div>
@@ -114,12 +125,12 @@ const TargetList = () => {
             </h1>
             <p className="text-gray-600 mt-1">Manage and track sales targets and achievements</p>
           </div>
-          <Link to="/targets/add">
+        {hasPermission(PERMISSIONS.TARGET_CREATE)&&(  <Link to="/targets/add">
             <Button icon={Plus}>Add Target</Button>
-          </Link>
+          </Link>)}
         </div>
 
-        {/* Filter Section */}
+      {hasPermission(PERMISSIONS.SALE_VIEW_ALL) && (
         <div className="flex flex-wrap items-center gap-3 mt-6 pt-6 border-t border-gray-200">
           <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
             <span className="text-sm text-gray-600">Filtered by:</span>
@@ -136,6 +147,7 @@ const TargetList = () => {
             </Button>
           )}
         </div>
+        )}
       </Card>
 
       {/* Targets Table */}
@@ -209,15 +221,16 @@ const TargetList = () => {
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center justify-center gap-2">
-                          <Link to={`/targets/${t.id}`}>
+                        {hasPermission(PERMISSIONS.TARGET_VIEW)&&(  <Link to={`/targets/${t.id}`}>
                             <button
                               className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                               title="View"
                             >
                               <Eye size={18} />
                             </button>
-                          </Link>
+                          </Link>)}
                           {!isEditDisabled && (
+                            hasPermission(PERMISSIONS.TARGET_UPDATE)&&
                             <Link to={`/targets/${t.id}/edit`}>
                               <button
                                 className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -227,7 +240,8 @@ const TargetList = () => {
                               </button>
                             </Link>
                           )}
-                          <button
+                         {
+                          hasPermission(PERMISSIONS.TARGET_DELETE)&& <button
                             onClick={() => {
                               setSelectedTarget(t.id);
                               setConfirmOpen(true);
@@ -237,6 +251,7 @@ const TargetList = () => {
                           >
                             <Trash2 size={18} />
                           </button>
+                         }
                         </div>
                       </td>
                     </tr>

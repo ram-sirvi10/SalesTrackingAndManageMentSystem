@@ -7,12 +7,13 @@ import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import EmptyState from "../../components/common/EmptyState";
 import ConfirmModal from "../../components/common/ConfirmDialog";
-
+import usePermission from "../../hooks/usePermission";
+import { PERMISSIONS } from "../../config/permissions.config";
 const RoleList = () => {
   const [roles, setRoles] = useState([]);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
-
+const{hasPermission }= usePermission();
   const fetchRoles = async () => {
     try {
       const res = await getRoles();
@@ -52,11 +53,11 @@ const RoleList = () => {
             <h2 className="text-2xl font-bold text-secondary-900">Roles & Permissions</h2>
             <p className="text-secondary-600 mt-1">Manage user roles and their permissions</p>
           </div>
-          <Link to="/roles/add">
+          {hasPermission(PERMISSIONS.ROLE_CREATE)&&(<Link to="/roles/add">
             <Button variant="primary" icon={Plus}>
               Add Role
             </Button>
-          </Link>
+          </Link>)}
         </div>
 
         <div className="overflow-x-auto rounded-lg border border-secondary-200">
@@ -82,27 +83,27 @@ const RoleList = () => {
                     <td className="px-6 py-4 text-secondary-700">{role.description}</td>
                     <td className="px-6 py-4">
                       <div className="flex gap-3 items-center flex-wrap">
-                        <Link
+                      {hasPermission(PERMISSIONS.ROLE_VIEW)&&(  <Link
                           to={`/roles/${role.id}`}
                           className="flex items-center gap-1 text-primary-600 hover:text-primary-700 font-medium transition-colors"
                         >
                           <Eye size={16} />
                           View
-                        </Link>
-                        <Link
+                        </Link>)}
+                       {hasPermission(PERMISSIONS.ROLE_UPDATE)&&( <Link
                           to={`/roles/${role.id}/edit`}
                           className="flex items-center gap-1 text-green-600 hover:text-green-700 font-medium transition-colors"
                         >
                           <Edit size={16} />
                           Edit
-                        </Link>
-                        <button
+                        </Link>)}
+                       {hasPermission(PERMISSIONS.ROLE_DELETE)&&( <button
                           onClick={() => handleDeleteClick(role)}
                           className="flex items-center gap-1 text-red-600 hover:text-red-700 font-medium transition-colors"
                         >
                           <Trash2 size={16} />
                           Delete
-                        </button>
+                        </button>)}
                       </div>
                     </td>
                   </tr>
@@ -114,7 +115,7 @@ const RoleList = () => {
                       icon={Shield}
                       title="No roles found"
                       description="Start by creating your first role to manage permissions."
-                      action={() => window.location.href = "/roles/add"}
+        
                       actionLabel="Add Role"
                     />
                   </td>

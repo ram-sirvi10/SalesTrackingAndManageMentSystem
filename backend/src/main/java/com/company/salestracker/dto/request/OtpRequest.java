@@ -1,6 +1,6 @@
 package com.company.salestracker.dto.request;
 
-import com.company.salestracker.util.AppConstant;
+import com.company.salestracker.constants.AppConstant;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.company.salestracker.constants.AppConstant;
 import com.company.salestracker.dto.request.AssignRolesRequest;
 import com.company.salestracker.dto.request.RoleRequest;
 import com.company.salestracker.dto.response.RoleResponse;
@@ -22,7 +23,6 @@ import com.company.salestracker.repository.RoleRepository;
 import com.company.salestracker.repository.UserRepository;
 import com.company.salestracker.service.RoleService;
 import com.company.salestracker.util.AppCommon;
-import com.company.salestracker.util.AppConstant;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

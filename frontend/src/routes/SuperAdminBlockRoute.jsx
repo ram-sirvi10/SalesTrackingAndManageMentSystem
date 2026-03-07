@@ -5,7 +5,7 @@ const SuperAdminBlockRoute = () => {
   const { user } = useAuth();
 
   if (user?.superAdmin) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/users" replace />;
   }
 
   return <Outlet />;

@@ -17,7 +17,8 @@ import Pagination from "../../components/common/Pagination";
 import usePermission from "../../hooks/usePermission";
 import useAuth from "../../hooks/useAuth";
 import UserSelectModal from "../../components/common/UserSelecetModel";
-
+import { PERMISSIONS } from "../../config/permissions.config";
+import usePermission from "../../hooks/usePermission";
 const DealList = () => {
   const [confirmModelOpen, setConfirmModelOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState("");
@@ -25,6 +26,8 @@ const DealList = () => {
   const [loading, setLoading] = useState(true);
   const [userModal, setUserModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+    const [dealViewType, setDealViewType] = useState("MY");
+   
   const [pagination, setPagination] = useState({
     currentPage: 0,
     totalPages: 0,
@@ -41,7 +44,7 @@ const DealList = () => {
       if (selectedUser) {
         console.log(selectedUser.id);
         res = await getAssignedDealByUserApi(selectedUser.id, page, size);
-      } else if (hasPermission("VIEW_ALL_DEALS")) {
+      } else if  (dealViewType === "ALL" &&hasPermission(PERMISSIONS.DEAL_VIEW_ALL)) {
         res = await getAllApi(page, size);
       } else {
         res = await getAssignedDealByUserApi(user.id, page, size);
@@ -66,7 +69,7 @@ const DealList = () => {
 
   useEffect(() => {
     fetchDeals(0, pagination.pageSize); 
-  }, [selectedUser]);
+  }, [selectedUser,dealViewType]);
 
   const handlePageChange = (page) => {
     fetchDeals(page, pagination.pageSize);
@@ -112,7 +115,20 @@ const DealList = () => {
 
   return (
     <div className="space-y-6">
+    <select
+  value={dealViewType}
+  onChange={(e) => setDealViewType(e.target.value)}
+  className="border p-2 rounded"
+>
+  <option value="MY">My Leads</option>
+  {hasPermission(PERMISSIONS.DEAL_VIEW_ALL) && (
+    <option value="ALL">All Leads</option>
+  )}
+</select>
+
+
       {/* Header with Filters */}
+      
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -125,7 +141,8 @@ const DealList = () => {
         
         </div>
 
-        {/* Filter Section */}
+  {hasPermission(PERMISSIONS.DEAL_VIEW_ALL) && (
+   
         <div className="flex flex-wrap items-center gap-3 mt-6 pt-6 border-t border-gray-200">
           <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
             <span className="text-sm text-gray-600">Filtered by:</span>
@@ -145,7 +162,7 @@ const DealList = () => {
               Reset Filter
             </Button>
           )}
-        </div>
+        </div>  )}
       </Card>
 
       {/* Deals Table */}
@@ -194,12 +211,12 @@ const DealList = () => {
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">
-                          <Link to={`/deals/${deal.id}`}>
+                         {hasPermission(PERMISSIONS.DEAL_VIEW)&&( <Link to={`/deals/${deal.id}`}>
                             <button className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors" title="View">
                               <Eye size={18} />
                             </button>
-                          </Link>
-                          {!isEditDisabled && (
+                          </Link>)}
+                          {!isEditDisabled && ( hasPermission(PERMISSIONS.DEAL_UPDATE)&&
                             <Link to={`/deals/${deal.id}/edit`}>
                               <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
                                 <Edit size={18} />
@@ -207,6 +224,7 @@ const DealList = () => {
                             </Link>
                           )}
                           {deal.dealStage === "WON" && !deal.saleId && (
+                            hasPermission(PERMISSIONS.SALE_CREATE)&&
                             <Link to={`/sales/add?dealId=${deal.id}`}>
                               <Button variant="success" size="sm">Create Sale</Button>
                             </Link>
@@ -214,14 +232,14 @@ const DealList = () => {
                           {deal.dealStage === "WON" && deal.saleId && (
                             <Badge variant="default" size="sm">Sale Created</Badge>
                           )}
-                          <button
+                         {hasPermission(PERMISSIONS.DEAL_DELETE)&&( <button
                             onClick={() => handleDeleteClick(deal.id)}
                             disabled={isDeleteDisabled}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                             title="Delete"
                           >
                             <Trash2 size={18} />
-                          </button>
+                          </button>)}
                         </div>
                       </td>
                     </tr>
@@ -235,11 +253,7 @@ const DealList = () => {
             icon={TrendingUp}
             title="No Deals Found"
             description="Start by creating your first deal or adjust your filters"
-            action={
-              <Link to="/deals/add">
-                <Button icon={Plus}>Create Deal</Button>
-              </Link>
-            }
+           
           />
         )}
 

@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.company.salestracker.constants.AppConstant;
 import com.company.salestracker.dto.request.LoginRequest;
 import com.company.salestracker.dto.request.LogoutRequest;
 import com.company.salestracker.dto.request.OtpRequest;
@@ -41,7 +42,6 @@ import com.company.salestracker.security.JwtTokenProvider;
 import com.company.salestracker.service.AuthService;
 import com.company.salestracker.service.EmailService;
 import com.company.salestracker.service.RefreshTokenService;
-import com.company.salestracker.util.AppConstant;
 
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;

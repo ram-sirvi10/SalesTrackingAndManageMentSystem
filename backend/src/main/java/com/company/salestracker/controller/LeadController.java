@@ -30,97 +30,110 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class LeadController {
 
-	private final LeadService leadService;
+    private final LeadService leadService;
 
-	// ==============================
-	// CREATE LEAD
-	// ==============================
-	@PostMapping
-	@PreAuthorize("hasAuthority('CREATE_LEAD')")
-	public ResponseEntity<ApiResponse<LeadResponse>> createLead(@Valid @RequestBody LeadRequest request) {
+    // ==============================
+    // CREATE LEAD
+    // ==============================
+    @PostMapping
+    @PreAuthorize("hasAuthority('LEAD_CREATE')")
+    public ResponseEntity<ApiResponse<LeadResponse>> createLead(@Valid @RequestBody LeadRequest request) {
 
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(ApiResponse.success("Lead created successfully", leadService.createLead(request)));
-	}
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Lead created successfully",
+                        leadService.createLead(request)));
+    }
 
-	// ==============================
-	// UPDATE LEAD
-	// ==============================
-	@PutMapping("/{leadId}")
-	@PreAuthorize("hasAuthority('UPDATE_LEAD')")
-	public ResponseEntity<ApiResponse<LeadResponse>> updateLead(@PathVariable String leadId,
-			@Valid @RequestBody LeadRequest request) {
+    // ==============================
+    // UPDATE LEAD
+    // ==============================
+    @PutMapping("/{leadId}")
+    @PreAuthorize("hasAuthority('LEAD_UPDATE')")
+    public ResponseEntity<ApiResponse<LeadResponse>> updateLead(
+            @PathVariable String leadId,
+            @Valid @RequestBody LeadRequest request) {
 
-		return ResponseEntity
-				.ok(ApiResponse.success("Lead updated successfully", leadService.updateLead(leadId, request)));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success("Lead updated successfully",
+                        leadService.updateLead(leadId, request)));
+    }
 
-	// ==============================
-	// ASSIGN LEAD
-	// ==============================
-	@PatchMapping("/assign")
-	@PreAuthorize("hasAuthority('ASSIGN_LEAD')")
-	public ResponseEntity<ApiResponse<LeadResponse>> assignLead(@Valid @RequestBody LeadAssignRequest request) {
+    // ==============================
+    // ASSIGN LEAD
+    // ==============================
+    @PatchMapping("/assign")
+    @PreAuthorize("hasAuthority('LEAD_ASSIGN')")
+    public ResponseEntity<ApiResponse<LeadResponse>> assignLead(
+            @Valid @RequestBody LeadAssignRequest request) {
 
-		return ResponseEntity.ok(ApiResponse.success("Lead assigned successfully", leadService.assignLead(request)));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success("Lead assigned successfully",
+                        leadService.assignLead(request)));
+    }
 
-	// ==============================
-	// UPDATE STATUS
-	// ==============================
-	@PatchMapping("/status")
-	@PreAuthorize("hasAuthority('UPDATE_LEAD_STATUS')")
-	public ResponseEntity<ApiResponse<LeadResponse>> updateStatus(@Valid @RequestBody LeadStatusUpdateRequest request) {
+    // ==============================
+    // UPDATE LEAD STATUS
+    // ==============================
+    @PatchMapping("/status")
+    @PreAuthorize("hasAuthority('LEAD_STATUS_UPDATE')")
+    public ResponseEntity<ApiResponse<LeadResponse>> updateStatus(
+            @Valid @RequestBody LeadStatusUpdateRequest request) {
 
-		return ResponseEntity
-				.ok(ApiResponse.success("Lead status updated successfully", leadService.updateStatus(request)));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success("Lead status updated successfully",
+                        leadService.updateStatus(request)));
+    }
 
-	// ==============================
-	// DELETE LEAD
-	// ==============================
-	@DeleteMapping("/{leadId}")
-	@PreAuthorize("hasAuthority('DELETE_LEAD')")
-	public ResponseEntity<ApiResponse<?>> deleteLead(@PathVariable String leadId) {
+    // ==============================
+    // DELETE LEAD
+    // ==============================
+    @DeleteMapping("/{leadId}")
+    @PreAuthorize("hasAuthority('LEAD_DELETE')")
+    public ResponseEntity<ApiResponse<?>> deleteLead(@PathVariable String leadId) {
 
-		leadService.deleteLead(leadId);
+        leadService.deleteLead(leadId);
 
-		return ResponseEntity.ok(ApiResponse.success("Lead deleted successfully"));
-	}
+        return ResponseEntity.ok(ApiResponse.success("Lead deleted successfully"));
+    }
 
-	// ==============================
-	// GET LEAD BY ID
-	// ==============================
-	@GetMapping("/{leadId}")
-	@PreAuthorize("hasAuthority('GET_LEAD')")
-	public ResponseEntity<ApiResponse<?>> getLeadById(@PathVariable String leadId) {
+    // ==============================
+    // GET LEAD BY ID
+    // ==============================
+    @GetMapping("/{leadId}")
+    @PreAuthorize("hasAuthority('LEAD_VIEW')")
+    public ResponseEntity<ApiResponse<?>> getLeadById(@PathVariable String leadId) {
 
-		return ResponseEntity.ok(ApiResponse.success("Lead fetched successfully", leadService.getById(leadId)));
+        return ResponseEntity.ok(
+                ApiResponse.success("Lead fetched successfully",
+                        leadService.getById(leadId)));
+    }
 
-	}
+    // ==============================
+    // VIEW ALL LEADS
+    // ==============================
+    @GetMapping
+    @PreAuthorize("hasAuthority('LEAD_VIEW_ALL')")
+    public ResponseEntity<ApiResponse<PaginationResponse<?>>> viewAllLeads(
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize) {
 
-	// ==============================
-	// VIEW ALL LEADS 
-	// ==============================
-	@GetMapping
-	@PreAuthorize("hasAuthority('VIEW_ALL_LEADS')")
-	public ResponseEntity<ApiResponse<PaginationResponse<?>>> viewAllLeads(@RequestParam(defaultValue = "0") int pageNo,
-			@RequestParam(defaultValue = "10") int pageSize) {
+        return ResponseEntity.ok(
+                ApiResponse.success("Leads fetched successfully",
+                        leadService.viewAllLead(pageNo, pageSize)));
+    }
 
-		return ResponseEntity
-				.ok(ApiResponse.success("Leads fetched successfully", leadService.viewAllLead(pageNo, pageSize)));
-	}
+    // ==============================
+    // VIEW LEADS BY ASSIGNED USER
+    // ==============================
+    @GetMapping("/assigned/{userId}")
+    @PreAuthorize("hasAuthority('LEAD_VIEW') or #userId == authentication.principal.id")
+    public ResponseEntity<ApiResponse<PaginationResponse<?>>> viewLeadsByAssignedUser(
+            @PathVariable String userId,
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize) {
 
-	// ==============================
-	// VIEW LEADS BY ASSIGNED USER
-	// ==============================
-	@GetMapping("/assigned/{userId}")
-//	@PreAuthorize("hasAuthority('VIEW_ASSIGNED_LEADS')")
-	@PreAuthorize("hasAuthority('VIEW_ASSIGNED_LEAD_OF_OTHER_USER') or #userId == authentication.principal.id")
-	public ResponseEntity<ApiResponse<PaginationResponse<?>>> viewLeadsByAssignedUser(@PathVariable String userId,
-			@RequestParam(defaultValue = "0") int pageNo, @RequestParam(defaultValue = "10") int pageSize) {
-
-		return ResponseEntity.ok(ApiResponse.success("Assigned leads fetched successfully",
-				leadService.viewAllLeadByAssignedUser(userId, pageNo, pageSize)));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success("Assigned leads fetched successfully",
+                        leadService.viewAllLeadByAssignedUser(userId, pageNo, pageSize)));
+    }
 }

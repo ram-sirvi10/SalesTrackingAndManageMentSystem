@@ -26,154 +26,155 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class UserController {
 
-	private final UserService userService;
+    private final UserService userService;
 
-	@GetMapping("/me")
-	@PreAuthorize("isAuthenticated()")
-	public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(Authentication authentication) {
+    // ==============================
+    // CURRENT USER
+    // ==============================
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(Authentication authentication) {
 
-		String email = authentication.getName();
+        String email = authentication.getName();
+        UserResponse user = userService.getUserByEmail(email);
 
-		UserResponse user = userService.getUserByEmail(email);
+        return ResponseEntity.ok(ApiResponse.success("User fetched successfully", user));
+    }
 
-		return ResponseEntity.ok(ApiResponse.success("User fetched successfully", user));
-	}
+    // ==============================
+    // UPDATE USER
+    // ==============================
+    @PatchMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER_UPDATE') or #userId == authentication.principal.id")
+    public ResponseEntity<ApiResponse<UserResponse>> updateUser(
+            @PathVariable String userId,
+            @Valid @RequestBody UpdateUserRequest request) {
 
-	// ==============================
-	// UPDATE USER
-	// ==============================
-	@PatchMapping("/{userId}")
-	@PreAuthorize("hasAuthority('UPDATE_USER') or #userId == authentication.principal.id")
-	public ResponseEntity<ApiResponse<UserResponse>> updateUser(@PathVariable String userId,
-			@Valid @RequestBody UpdateUserRequest request) {
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "User updated successfully",
+                        userService.updateUser(userId, request)
+                )
+        );
+    }
 
-		return ResponseEntity
-				.ok(ApiResponse.success("User updated successfully", userService.updateUser(userId, request)));
-	}
+    // ==============================
+    // DELETE USER
+    // ==============================
+    @DeleteMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER_DELETE')")
+    public ResponseEntity<ApiResponse<?>> deleteUser(@PathVariable String userId) {
 
-	// ==============================
-	// DELETE USER (Soft Delete)
-	// ==============================
-	@DeleteMapping("/{userId}")
-	@PreAuthorize("hasAuthority('DELETE_USER')")
-	public ResponseEntity<ApiResponse<?>> deleteUser(@PathVariable String userId) {
+        userService.deleteUser(userId);
 
-		userService.deleteUser(userId);
-		return ResponseEntity.ok(ApiResponse.success("User deleted successfully"));
-	}
+        return ResponseEntity.ok(ApiResponse.success("User deleted successfully"));
+    }
 
-	// ==============================
-	// GET USERS BY ROLE
-	// ==============================
-	@GetMapping("/role/{roleId}")
-	@PreAuthorize("hasAuthority('VIEW_USERS_BY_ROLE')")
-	public ResponseEntity<ApiResponse<PaginationResponse<?>>> getUsersByRole(@PathVariable String roleId,
-			@RequestParam(defaultValue = "0") int pageNo, @RequestParam(defaultValue = "10") int pageSize) {
+    // ==============================
+    // VIEW USERS BY ROLE
+    // ==============================
+    @GetMapping("/role/{roleId}")
+    @PreAuthorize("hasAuthority('USER_VIEW')")
+    public ResponseEntity<ApiResponse<PaginationResponse<?>>> getUsersByRole(
+            @PathVariable String roleId,
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize) {
 
-		return ResponseEntity.ok(ApiResponse.success("Users fetched successfully",
-				userService.getAllUserByRole(roleId, pageNo, pageSize)));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Users fetched successfully",
+                        userService.getAllUserByRole(roleId, pageNo, pageSize)
+                )
+        );
+    }
 
-	// ==============================
-	// GET PENDING USERS BY ADMIN
-	// ==============================
-	@GetMapping("/pending")
-	@PreAuthorize("hasAuthority('VIEW_PENDING_USERS')")
-	public ResponseEntity<ApiResponse<PaginationResponse<?>>> getPendingUsers(
-			@RequestParam(defaultValue = "0") int pageNo, @RequestParam(defaultValue = "10") int pageSize) {
+    // ==============================
+    // VIEW PENDING USERS
+    // ==============================
+    @GetMapping("/pending")
+    @PreAuthorize("hasAuthority('USER_VIEW')")
+    public ResponseEntity<ApiResponse<PaginationResponse<?>>> getPendingUsers(
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize) {
 
-		return ResponseEntity.ok(ApiResponse.success("Pending users fetched successfully",
-				userService.getAllPendingRequest(pageNo, pageSize)));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Pending users fetched successfully",
+                        userService.getAllPendingRequest(pageNo, pageSize)
+                )
+        );
+    }
 
-	// ==============================
-	// GET ALL USERS
-	// ==============================
-	@GetMapping
-	@PreAuthorize("hasAuthority('VIEW_ALL_USERS')")
-	public ResponseEntity<ApiResponse<PaginationResponse<?>>> getAllUsers(@RequestParam(defaultValue = "0") int pageNo,
-			@RequestParam(defaultValue = "10") int pageSize, @RequestParam(defaultValue = "") String search) {
-if(pageSize>100)pageSize=100;
-		return ResponseEntity
-				.ok(ApiResponse.success("Users fetched successfully", userService.getAll(pageNo, pageSize, search)));
-	}
+    // ==============================
+    // VIEW ALL USERS
+    // ==============================
+    @GetMapping
+    @PreAuthorize("hasAuthority('USER_VIEW')")
+    public ResponseEntity<ApiResponse<PaginationResponse<?>>> getAllUsers(
+            @RequestParam(defaultValue = "0") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "") String search) {
 
-	// ==============================
-	// APPROVE USER REQUEST
-	// ==============================
-	@PatchMapping("/approve/{userId}")
-	@PreAuthorize("hasAuthority('APPROVE_USER')")
-	public ResponseEntity<ApiResponse<?>> approveUser(@PathVariable String userId) {
+        if(pageSize > 100) pageSize = 100;
 
-		userService.approveRequest(userId);
-		return ResponseEntity.ok(ApiResponse.success("User approved successfully"));
-	}
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Users fetched successfully",
+                        userService.getAll(pageNo, pageSize, search)
+                )
+        );
+    }
 
-	// ==============================
-	// REJECT USER REQUEST
-	// ==============================
-	@PatchMapping("/reject/{userId}")
-	@PreAuthorize("hasAuthority('REJECT_USER')")
-	public ResponseEntity<ApiResponse<?>> rejectUser(@PathVariable String userId) {
+    // ==============================
+    // APPROVE USER
+    // ==============================
+    @PatchMapping("/approve/{userId}")
+    @PreAuthorize("hasAuthority('USER_APPROVE')")
+    public ResponseEntity<ApiResponse<?>> approveUser(@PathVariable String userId) {
 
-		userService.rejectRequest(userId);
-		return ResponseEntity.ok(ApiResponse.success("User rejected successfully"));
-	}
+        userService.approveRequest(userId);
 
-	// ==============================
-	// TOGGLE USER STATUS
-	// ==============================
-	@PatchMapping("/toggle-status/{userId}")
-	@PreAuthorize("hasAuthority('TOGGLE_USER_STATUS')")
-	public ResponseEntity<ApiResponse<?>> toggleStatus(@PathVariable String userId) {
+        return ResponseEntity.ok(ApiResponse.success("User approved successfully"));
+    }
 
-		userService.toggalStatus(userId);
-		return ResponseEntity.ok(ApiResponse.success("User status updated successfully"));
-	}
+    // ==============================
+    // REJECT USER
+    // ==============================
+    @PatchMapping("/reject/{userId}")
+    @PreAuthorize("hasAuthority('USER_APPROVE')")
+    public ResponseEntity<ApiResponse<?>> rejectUser(@PathVariable String userId) {
 
-	// ==============================
-	// GET USER BY ID
-	// ==============================
-	@GetMapping("/{userId}")
-	@PreAuthorize("hasAuthority('VIEW_ALL_USERS') or #userId == authentication.principal.id")
-	public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable String userId) {
+        userService.rejectRequest(userId);
 
-		return ResponseEntity.ok(ApiResponse.success("User fetched successfully", userService.getUserById(userId)));
-	}
-//	// ==============================
-//	// GET ALL SUPER ADMINS
-//	// ==============================
-//	@GetMapping("/super-admins")
-//	@PreAuthorize("hasAuthority('VIEW_SUPER_ADMINS')")
-//	public ResponseEntity<ApiResponse<PaginationResponse<?>>> getAllSuperAdmins(
-//			@RequestParam(defaultValue = "0") int pageNo, @RequestParam(defaultValue = "10") int pageSize) {
-//
-//		return ResponseEntity.ok(ApiResponse.success("Super admins fetched successfully",
-//				userService.getAllSuperAdmins(pageNo, pageSize)));
-//	}
-//
-//	// ==============================
-//	// GET ALL ADMINS
-//	// ==============================
-//	@GetMapping("/admins")
-//	@PreAuthorize("hasAuthority('VIEW_ADMINS')")
-//	public ResponseEntity<ApiResponse<PaginationResponse<?>>> getAllAdmins(@RequestParam(defaultValue = "0") int pageNo,
-//			@RequestParam(defaultValue = "10") int pageSize) {
-//
-//		return ResponseEntity
-//				.ok(ApiResponse.success("Admins fetched successfully", userService.getAllAdmins(pageNo, pageSize)));
-//	}
+        return ResponseEntity.ok(ApiResponse.success("User rejected successfully"));
+    }
 
-	// ==============================
-	// GET USERS BY ADMIN
-	// ==============================
-//	@GetMapping("/admin/{adminId}")
-//	@PreAuthorize("hasAuthority('VIEW_USERS_BY_ADMIN')")
-//	public ResponseEntity<ApiResponse<PaginationResponse<?>>> getUsersByAdmin(@PathVariable String adminId,
-//			@RequestParam(defaultValue = "0") int pageNo, @RequestParam(defaultValue = "10") int pageSize) {
-//
-//		return ResponseEntity.ok(ApiResponse.success("Users fetched successfully",
-//				userService.getAllUserByAdmin(adminId, pageNo, pageSize)));
-//	}
+    // ==============================
+    // TOGGLE USER STATUS
+    // ==============================
+    @PatchMapping("/toggle-status/{userId}")
+    @PreAuthorize("hasAuthority('USER_STATUS_UPDATE')")
+    public ResponseEntity<ApiResponse<?>> toggleStatus(@PathVariable String userId) {
 
+        userService.toggalStatus(userId);
+
+        return ResponseEntity.ok(ApiResponse.success("User status updated successfully"));
+    }
+
+    // ==============================
+    // GET USER BY ID
+    // ==============================
+    @GetMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER_VIEW') or #userId == authentication.principal.id")
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable String userId) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "User fetched successfully",
+                        userService.getUserById(userId)
+                )
+        );
+    }
+    
+    
 }

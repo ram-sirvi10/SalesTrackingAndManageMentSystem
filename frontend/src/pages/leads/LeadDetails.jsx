@@ -14,11 +14,13 @@ import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import Badge from "../../components/common/Badge";
 import ConfirmModal from "../../components/common/ConfirmDialog";
+import usePermission from "../../hooks/usePermission";
+import { PERMISSIONS } from "../../config/permissions.config";
 
 const LeadDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
+  const { hasPermission } = usePermission();
   const [lead, setLead] = useState(null);
   const [loading, setLoading] = useState(true);
   const [assignOpen, setAssignOpen] = useState(false);
@@ -102,16 +104,18 @@ const LeadDetails = () => {
           </div>
 
           <div className="flex gap-3">
-            <Button
+            {hasPermission(PERMISSIONS.LEAD_ASSIGN)&&( <Button
               onClick={() => setAssignOpen(true)}
               disabled={lead.status !== "NEW"}
               variant="success"
               icon={UserPlus}
             >
               {lead.assignedPersonEmail ? "Reassign" : "Assign"}
-            </Button>
+            </Button>)}
+           
 
-            {isEditDisabled ? (
+            {
+            hasPermission(PERMISSIONS.LEAD_UPDATE)&&(  isEditDisabled ? ( 
               <Button variant="secondary" disabled icon={Edit}>
                 Edit
               </Button>
@@ -121,16 +125,18 @@ const LeadDetails = () => {
                   Edit
                 </Button>
               </Link>
-            )}
+            ))
+            
+          }
 
-            <Button
+           {hasPermission(PERMISSIONS.LEAD_DELETE)&&( <Button
               onClick={() => setConfirmDelete(true)}
               disabled={isDeleteDisabled}
               variant="danger"
               icon={Trash2}
             >
               Delete
-            </Button>
+            </Button>)}
           </div>
         </div>
 
@@ -155,7 +161,7 @@ const LeadDetails = () => {
                 <Badge variant={getStatusBadge(lead.status)} size="md">
                   {lead.status}
                 </Badge>
-                {getAllowedNextStatus(lead.status).length > 0 && (
+                {hasPermission(PERMISSIONS.LEAD_STATUS_UPDATE)&&(getAllowedNextStatus(lead.status).length > 0 && (
                   <div className="flex gap-2 flex-wrap">
                     {getAllowedNextStatus(lead.status).map((status) => (
                       <button
@@ -167,7 +173,7 @@ const LeadDetails = () => {
                       </button>
                     ))}
                   </div>
-                )}
+                ))}
               </div>
             </div>
           </div>

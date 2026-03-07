@@ -1,8 +1,27 @@
-import { Outlet } from "react-router-dom";
-import Sidebar from "../components/navigation/SideBar";
-import Topbar from "../components/navigation/Topbar";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import useAuth from "@/hooks/useAuth";
+import Sidebar from "@/components/navigation/SideBar";
+import Topbar from "@/components/navigation/Topbar";
+import { getRedirectPath } from "../utils/getRedirectPath";
 
 const AdminLayout = () => {
+   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!user) return;
+
+    if (location.pathname === "/") {
+      const redirect = getRedirectPath(
+        user.permissions,
+        user.isSuperAdmin
+      );
+
+      navigate(redirect);
+    }
+  }, [user]);
   return (
     <div className="flex h-screen bg-gradient-to-br from-secondary-50 via-white to-secondary-50">
       {/* Sidebar */}

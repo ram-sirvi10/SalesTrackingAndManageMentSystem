@@ -10,7 +10,7 @@ const Topbar = () => {
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -56,7 +56,7 @@ const Topbar = () => {
             </div>
             <div className="hidden md:block text-left">
               <p className="text-sm font-semibold text-gray-800">
-                {user?.fullName || "User"}
+                {user?.name || "User"}
               </p>
               <p className="text-xs text-gray-500">{user?.email}</p>
             </div>
